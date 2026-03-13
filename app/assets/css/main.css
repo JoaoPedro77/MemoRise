@@ -1,0 +1,8 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+@theme static {
+  --font-sans: 'Jersey 10', sans-serif;
+  --font-emoji: 'Noto Color Emoji', sans-serif;
+
+}
