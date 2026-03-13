@@ -3,43 +3,138 @@ export interface Upgrade {
   name: string
   description: string
   icon: string
-  type: 'perk' | 'item'
+  floors?: number
+  type: 'perk' | 'item' | 'curse'
 }
 
 export const UPGRADES_POOL: Upgrade[] = [
+  // Perks
   {
-    id: 'extra-life',
-    name: 'Coração de Pixel',
-    icon: 'pixel:heart-solid',
-    description: '+1 Vida Máxima',
+    id: '❤️',
+    name: 'Coração Extra',
+    icon: 'game-icons:heart-bottle',
+    description: '+1 Vida',
     type: 'perk'
   },
   {
-    id: 'peek-master',
-    name: 'Memória Curta',
-    icon: 'lucide:eye',
+    id: '📄',
+    name: 'Contrato com a Morte',
+    icon: 'game-icons:reaper-scythe',
     description: 'Permite ver a mesma carta 2x sem perder vida',
     type: 'perk'
   },
   {
-    id: 'crystal-lens',
+    id: '👀',
+    name: 'Visão Aguçada',
+    icon: 'game-icons:beast-eye',
+    description: 'Permite ver qual carta você já viu antes',
+    floors: 3,
+    type: 'perk'
+  },
+  {
+    id: '⌛',
+    name: 'Ampulheta',
+    icon: 'game-icons:sands-of-time',
+    description: 'Mais 1 min. para completar o andar',
+    floors: 5,
+    type: 'perk'
+  },
+  {
+    id: '✂️',
+    name: 'Corte de Custos',
+    icon: 'game-icons:scissors',
+    description: 'Próximo andar tem metade do objetivo',
+    floors: 1,
+    type: 'perk'
+  },
+  {
+    id: '💪',
+    name: 'Memória Muscular',
+    icon: 'game-icons:muscle-fat',
+    description: 'Se você acertar 3 pares seguidos, recupera 1 ponto de vida.',
+    floors: 3,
+    type: 'perk'
+  },
+  {
+    id: '🎲',
+    name: 'Sorte de principiante',
+    icon: 'game-icons:dice-fire',
+    description: 'tem 2% de chance de começar com um par virado',
+    floors: 4,
+    type: 'perk'
+  },
+  {
+    id: '🪦',
+    name: 'Pacto maldito',
+    icon: 'game-icons:skull-in-jar',
+    description: 'tem 30% de chance de começar com um par virado e 20% de chance de perder 1 vida',
+    floors: 3,
+    type: 'perk'
+  },
+  {
+    id: '👁️',
+    name: 'Visão do além',
+    icon: 'game-icons:eyeball',
+    description: 'No início do andar, todas as cartas são reveladas por 1 segundo.',
+    floors: 2,
+    type: 'perk'
+  },
+  {
+    id: '🛏️',
+    name: 'Sonho ruim',
+    icon: 'game-icons:bed',
+    description: 'Se você morrer, volta para o andar anterior com 1 vida',
+    floors: 4,
+    type: 'perk'
+  },
+  {
+    id: '⌚',
+    name: 'Mão do tempo',
+    icon: 'game-icons:pocket-watch',
+    description: 'Se você clicar em uma carta que já viu, ela não vira, mas você perde 5 segundos de tempo.',
+    floors: 3,
+    type: 'perk'
+  },
+
+  // Maldições
+  {
+    id: '💀',
+    name: 'Pacto Da Morte',
+    icon: 'game-icons:chewed-skull',
+    description: 'tem 10% de chance de começar com um par virado e 50% de chance de perder 1 vida',
+    type: 'curse'
+  },
+
+  // Itens
+  {
+    id: '🔍',
     name: 'Lupa de Cristal',
-    icon: 'lucide:search',
-    description: 'Revela o par de uma carta clicada (1x por andar)',
+    icon: 'game-icons:magnifying-glass',
+    description: 'Revela o par de uma carta clicada',
     type: 'item'
   },
   {
-    id: 'hourglass',
-    name: 'Ampulheta',
-    icon: 'lucide:hourglass',
-    description: 'Mais tempo para completar o andar',
-    type: 'perk'
+    id: '🔑',
+    name: 'Chave do andar',
+    icon: 'game-icons:key-lock',
+    description: 'Pula para o próximo andar',
+    type: 'item'
   },
   {
-    id: 'tax-cut',
-    name: 'Corte de Custos',
-    icon: 'lucide:scissors',
-    description: 'Próximo andar tem metade do objetivo',
-    type: 'perk'
+    id: '🧵',
+    name: '',
+    icon: 'game-icons:sewing-needle',
+    description: '',
+    type: 'item'
+  },
+  {
+    id: '🧪',
+    name: 'Poção da Loucura',
+    icon: 'game-icons:potion-of-madness',
+    description: 'Vira e desvira cartas aleatoriamente por 1 segundo',
+    type: 'item'
   }
+
 ]
+
+export const maxLives = 10

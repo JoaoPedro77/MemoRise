@@ -4,7 +4,7 @@ import type { Card } from '~/utils/game-logic'
 // Recebe a carta como propriedade
 defineProps<{ card: Card }>()
 defineEmits(['click'])
-
+const gameStore = useGameStore()
 const alvo = ref(null)
 const { elementX, elementY, isOutside, elementHeight, elementWidth } = useMouseInElement(alvo)
 
@@ -45,7 +45,7 @@ const cardTransform = computed(() => {
           class="absolute inset-0 w-full h-full backface-hidden z-10"
         >
           <NuxtImg
-            src="cartaCosta.png"
+            :src="card.jaViu && gameStore.activeUpgrades.find(u => u?.id === '👀') ? 'cartaCostaVista.png' : 'cartaCosta.png'"
             class="w-full h-full shadow-lg rounded-sm"
           />
         </div>

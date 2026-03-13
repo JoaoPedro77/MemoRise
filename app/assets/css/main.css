@@ -4,5 +4,17 @@
 @theme static {
   --font-sans: 'Jersey 10', sans-serif;
   --font-emoji: 'Noto Color Emoji', sans-serif;
+  --font-emoji2: 'Noto Emoji', sans-serif;
 
+  --color-night-50:  #F5F5F7;
+  --color-night-100: #E9E8ED;
+  --color-night-200: #D1CFD8;
+  --color-night-300: #ABABB9;
+  --color-night-400: #828094;
+  --color-night-500: #605D72;
+  --color-night-600: #494659;
+  --color-night-700: #333042;
+  --color-night-800: #1F1B2D; /* Sua cor base agora no 800 */
+  --color-night-900: #15121F; /* Um degrau mais escuro */
+  --color-night-950: #0C0A12;
 }

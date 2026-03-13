@@ -1,8 +1,10 @@
 export default defineAppConfig({
   ui: {
     colors: {
-      primary: 'rose',
-      neutral: 'mauve'
+      primary: 'violet',
+      neutral: 'night',
+      secondary: 'amber',
+      error: 'red'
     },
     darkMode: true
   }

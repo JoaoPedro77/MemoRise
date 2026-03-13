@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { UPGRADES_POOL } from '~/constants/upgrades'
+import { UPGRADES_POOL, maxLives } from '~/constants/upgrades'
 import { applyUpgradeEffect } from '~/utils/upgrade-effects'
 import { gerarMatrizMemoria } from '~/utils/game-logic'
 import { bancoEmojis } from '~/utils/banco-emojis'
@@ -8,7 +8,7 @@ export const useGameStore = defineStore('game', () => {
   const tabuleiro = ref<Card[][]>([])
 
   const lives = ref(3)
-  const floor = ref({ number: 1, goal: 4 })
+  const floor = ref({ number: 1, goal: 4, time: -1 })
   const collectedUpgradeIds = ref<string[]>([])
   const isGameOver = ref(false)
 
@@ -34,7 +34,7 @@ export const useGameStore = defineStore('game', () => {
   }
 
   function addLife() {
-    if (lives.value < 12) lives.value++
+    if (lives.value < maxLives) lives.value++
   }
 
   function resetRun() {
@@ -42,7 +42,8 @@ export const useGameStore = defineStore('game', () => {
     isGameOver.value = false
     floor.value = {
       number: 1,
-      goal: 4
+      goal: 4,
+      time: -1
     }
     collectedUpgradeIds.value = []
   }
