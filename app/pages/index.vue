@@ -50,6 +50,7 @@ function checkMatch() {
 function handleSuccess() {
   if (firstCard.value) firstCard.value.combinada = true
   if (secondCard.value) secondCard.value.combinada = true
+  gameStore.registerMatch()
 
   resetTurn()
 
@@ -73,8 +74,22 @@ function resetTurn() {
   lockBoard.value = false
 }
 
-const ganhouFase = computed(() => {
+const tabuleiroLimpo = computed(() => {
   return gameStore.tabuleiro.flat().every(card => card.combinada)
+})
+
+const ganhouFase = computed(() => {
+  return gameStore.pairsFoundInAndar >= gameStore.floor.goal
+})
+
+watch(tabuleiroLimpo, (limpo) => {
+  if (limpo && !ganhouFase.value) {
+    // REEMBALHAR!
+    // Gera novas 12 cartas para o jogador continuar pontuando no mesmo andar
+    gameStore.iniciarTabuleiro()
+    //////////////////////////////////////////////////////////////////
+    console.log('Nova leva de cartas! Continue!')
+  }
 })
 </script>
 
@@ -99,13 +114,14 @@ const ganhouFase = computed(() => {
     <section class="flex flex-col gap-2 mt-3">
       <div
         v-for="(linha, i) in gameStore.tabuleiro"
-        :key="`linha-${i}`"
+        :key="`floor-${gameStore.floor.number}-linha-${i}`"
         class="flex gap-2 justify-center"
       >
         <CartasJogo
-          v-for="card in linha"
+          v-for="(card, j) in linha"
           :key="card.id"
           :card="card"
+          :index="i * linha.length + j"
           @click="selectCard(card)"
         />
       </div>

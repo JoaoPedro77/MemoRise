@@ -121,13 +121,6 @@ export const UPGRADES_POOL: Upgrade[] = [
     type: 'item'
   },
   {
-    id: '🧵',
-    name: '',
-    icon: 'game-icons:sewing-needle',
-    description: '',
-    type: 'item'
-  },
-  {
     id: '🧪',
     name: 'Poção da Loucura',
     icon: 'game-icons:potion-of-madness',
@@ -136,5 +129,3 @@ export const UPGRADES_POOL: Upgrade[] = [
   }
 
 ]
-
-export const maxLives = 10

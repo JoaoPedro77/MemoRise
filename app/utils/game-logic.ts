@@ -4,7 +4,7 @@ interface ConfigJogo {
 }
 
 export interface Card {
-  id: number
+  id: number | string
   valor: string
   revelada: boolean
   combinada: boolean
@@ -27,14 +27,15 @@ export function gerarMatrizMemoria(banco: string[], config: ConfigJogo): Card[][
     .slice(0, totalPares)
 
   // 3. Criar a lista plana com as duplas
+  const boardId = Math.random().toString(36).substring(2, 9)
   const listaPlana: Card[] = [...emojisSelecionados, ...emojisSelecionados].map((emoji, index) => ({
-    id: index,
+    id: `${boardId}-${index}`,
     valor: emoji,
     revelada: false,
     combinada: false,
     jaViu: false,
     usouSegundaChance: false
-  }))
+  })) as unknown as Card[]
 
   // 4. Aplicar Fisher-Yates (O embaralhamento real e justo)
   for (let i = listaPlana.length - 1; i > 0; i--) {

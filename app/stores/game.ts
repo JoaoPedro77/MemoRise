@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia'
-import { UPGRADES_POOL, maxLives } from '~/constants/upgrades'
+import { UPGRADES_POOL } from '~/constants/upgrades'
 import { applyUpgradeEffect } from '~/utils/upgrade-effects'
 import { gerarMatrizMemoria } from '~/utils/game-logic'
 import { bancoEmojis } from '~/utils/banco-emojis'
+import { maxBoardSize, maxLives } from '~/constants/constantes'
 
 export const useGameStore = defineStore('game', () => {
   const tabuleiro = ref<Card[][]>([])
@@ -11,6 +12,7 @@ export const useGameStore = defineStore('game', () => {
   const floor = ref({ number: 1, goal: 4, time: -1 })
   const collectedUpgradeIds = ref<string[]>([])
   const isGameOver = ref(false)
+  const pairsFoundInAndar = ref(0)
 
   const activeUpgrades = computed(() => {
     return collectedUpgradeIds.value.map(id =>
@@ -19,7 +21,11 @@ export const useGameStore = defineStore('game', () => {
   })
 
   function iniciarTabuleiro() {
-    tabuleiro.value = gerarMatrizMemoria(bancoEmojis, { totalPares: floor.value.goal, colunas: 4 })
+    tabuleiro.value = gerarMatrizMemoria(bancoEmojis, { totalPares: (floor.value.goal <= maxBoardSize) ? floor.value.goal : maxBoardSize, colunas: 4 })
+  }
+
+  function registerMatch() {
+    pairsFoundInAndar.value++
   }
 
   function addUpgrade(id: string) {
@@ -46,11 +52,13 @@ export const useGameStore = defineStore('game', () => {
       time: -1
     }
     collectedUpgradeIds.value = []
+    pairsFoundInAndar.value = 0
   }
 
   function nextFloor(addToGoal: number) {
     floor.value.number++
     floor.value.goal += addToGoal
+    pairsFoundInAndar.value = 0
   }
 
   return {
@@ -58,11 +66,13 @@ export const useGameStore = defineStore('game', () => {
     floor,
     collectedUpgradeIds,
     isGameOver,
+    pairsFoundInAndar,
     activeUpgrades,
     loseLife,
     addLife,
     resetRun,
     nextFloor,
+    registerMatch,
     addUpgrade,
     iniciarTabuleiro,
     tabuleiro
