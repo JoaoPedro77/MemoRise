@@ -18,3 +18,7 @@
   --color-night-900: #15121F; /* Um degrau mais escuro */
   --color-night-950: #0C0A12;
 }
+body {
+  background-image: url('/bg.png');
+  background-repeat: repeat;
+}
