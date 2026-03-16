@@ -75,7 +75,7 @@ function resetTurn() {
 }
 
 const tabuleiroLimpo = computed(() => {
-  return gameStore.tabuleiro.flat().every(card => card.combinada)
+  return gameStore.tabuleiro.every(card => card.combinada)
 })
 
 const ganhouFase = computed(() => {
@@ -91,13 +91,27 @@ watch(tabuleiroLimpo, (limpo) => {
     console.log('Nova leva de cartas! Continue!')
   }
 })
+
+const gridColsClass = computed(() => {
+  const numCards = gameStore.tabuleiro.length
+  // No PC (MD+), tentamos manter 4 linhas
+  const colsPC = Math.ceil(numCards / 4)
+
+  // No Mobile, mantemos a lógica anterior flexível
+  let colsMobile = 'grid-cols-4'
+  if (numCards <= 4) colsMobile = 'grid-cols-2'
+  if (numCards <= 8) colsMobile = 'grid-cols-4'
+
+  return `${colsMobile} md:grid-cols-${colsPC}`
+})
 </script>
 
 <template>
-  <main class="flex flex-col items-center h-full pt-21 px-4">
-    <div
+  <main class="flex flex-col md:flex-row items-center md:items-start md:justify-center min-h-screen pt-21 px-4 gap-2 overflow-hidden relative">
+    <!-- BARRA LATERAL (Upgrades) -->
+    <aside
       v-if="gameStore.activeUpgrades.length > 0"
-      class="flex flex-wrap items-center justify-start gap-3 p-2 bg-neutral-800/50 rounded-xl backdrop-blur-sm"
+      class="flex flex-row md:flex-col items-center justify-center gap-3 p-3 bg-neutral-800/50 rounded-xl backdrop-blur-sm md:sticky md:top-25"
     >
       <UTooltip
         v-for="up in gameStore.activeUpgrades"
@@ -110,22 +124,29 @@ watch(tabuleiroLimpo, (limpo) => {
           :class="up?.type === 'curse' ? 'text-error-500' : 'text-secondary-400'"
         />
       </UTooltip>
-    </div>
-    <section class="flex flex-col gap-2 mt-3">
-      <div
-        v-for="(linha, i) in gameStore.tabuleiro"
-        :key="`floor-${gameStore.floor.number}-linha-${i}`"
-        class="flex gap-2 justify-center"
-      >
-        <CartasJogo
-          v-for="(card, j) in linha"
-          :key="card.id"
-          :card="card"
-          :index="i * linha.length + j"
-          @click="selectCard(card)"
-        />
-      </div>
+    </aside>
+
+    <!-- ÁREA DO JOGO -->
+    <section
+      class="grid gap-2 md:gap-3 max-w-7xl justify-items-center"
+      :class="gridColsClass"
+    >
+      <CartasJogo
+        v-for="(card, j) in gameStore.tabuleiro"
+        :key="card.id"
+        :card="card"
+        :index="j"
+        @click="selectCard(card)"
+      />
     </section>
+
+    <!-- CARTAS DE ITEMS ARRUMAR DEPOIS -->
+    <div class="fixed bottom-0 left-2/5 -translate-x-1/2 flex gap-4 pointer-events-none translate-y-15 opacity-80">
+      <NuxtImg
+        src="cartaUpgrade.png"
+        class="w-[80px] h-[110px] sm:w-[100px] sm:h-[135px] rotate-3 -translate-y-4 shadow-2xl"
+      />
+    </div>
 
     <UModal
       v-model:open="gameStore.isGameOver"

@@ -12,8 +12,8 @@ export interface Card {
   usouSegundaChance?: boolean // Para o perk de Memória Curta
 }
 
-export function gerarMatrizMemoria(banco: string[], config: ConfigJogo): Card[][] {
-  const { totalPares, colunas } = config
+export function gerarListaCartasMemoria(banco: string[], config: ConfigJogo): Card[] {
+  const { totalPares } = config
 
   // 1. Validação simples: temos emojis suficientes no banco?
   if (totalPares > banco.length) {
@@ -21,9 +21,8 @@ export function gerarMatrizMemoria(banco: string[], config: ConfigJogo): Card[][
   }
 
   // 2. Selecionar N emojis aleatórios do banco para serem os pares da rodada
-  // Embaralhamos o banco primeiro para pegar emojis diferentes a cada jogo
   const emojisSelecionados = [...banco]
-    .sort(() => Math.random() - 0.5) // Embaralhar simples serve aqui para a seleção
+    .sort(() => Math.random() - 0.5)
     .slice(0, totalPares)
 
   // 3. Criar a lista plana com as duplas
@@ -35,9 +34,9 @@ export function gerarMatrizMemoria(banco: string[], config: ConfigJogo): Card[][
     combinada: false,
     jaViu: false,
     usouSegundaChance: false
-  })) as unknown as Card[]
+  }))
 
-  // 4. Aplicar Fisher-Yates (O embaralhamento real e justo)
+  // 4. Aplicar Fisher-Yates
   for (let i = listaPlana.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
     const temp = listaPlana[i]
@@ -45,11 +44,5 @@ export function gerarMatrizMemoria(banco: string[], config: ConfigJogo): Card[][
     listaPlana[j] = temp as Card
   }
 
-  // 5. Agrupar em sub-arrays (Matriz)
-  const matriz: Card[][] = []
-  for (let i = 0; i < listaPlana.length; i += colunas) {
-    matriz.push(listaPlana.slice(i, i + colunas))
-  }
-
-  return matriz
+  return listaPlana
 }

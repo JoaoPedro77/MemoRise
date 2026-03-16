@@ -28,7 +28,7 @@ const cardTransform = computed(() => {
 <template>
   <div
     ref="alvo"
-    class="relative w-[70px] h-[90px] cursor-pointer anim-entrada"
+    class="relative w-[75px] h-[100px] sm:w-[90px] sm:h-[120px] md:w-[100px] md:h-[135px] cursor-pointer anim-entrada"
     style="perspective: 1000px"
     :style="{ '--delay': `${index * 0.1}s` }"
     @click="$emit('click')"
@@ -62,7 +62,7 @@ const cardTransform = computed(() => {
             src="cartaFrente.png"
             class="w-full h-full shadow-lg rounded-sm"
           />
-          <span class="absolute pt-2 font-emoji text-shadow-sm inset-0 flex items-center justify-center text-3xl pb-2 select-none">
+          <span class="absolute pt-2 font-emoji text-shadow-sm inset-0 flex items-center justify-center text-3xl sm:text-4xl md:text-5xl pb-2 select-none">
             {{ card.valor }}
           </span>
         </div>
