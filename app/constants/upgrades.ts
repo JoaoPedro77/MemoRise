@@ -7,6 +7,12 @@ export interface Upgrade {
   type: 'perk' | 'item' | 'curse'
 }
 
+export interface CollectedUpgrade {
+  instanceId: string
+  id: string
+  floorsLeft: number
+}
+
 export const UPGRADES_POOL: Upgrade[] = [
   // Perks
   {
@@ -21,6 +27,7 @@ export const UPGRADES_POOL: Upgrade[] = [
     name: 'Contrato com a Morte',
     icon: 'game-icons:reaper-scythe',
     description: 'Permite ver a mesma carta 2x sem perder vida',
+    floors: 5,
     type: 'perk'
   },
   {
@@ -67,7 +74,7 @@ export const UPGRADES_POOL: Upgrade[] = [
     id: '🪦',
     name: 'Pacto maldito',
     icon: 'game-icons:skull-in-jar',
-    description: 'tem 30% de chance de começar com um par virado e 20% de chance de perder 1 vida',
+    description: '30% de chance: -1 par \n 20% de chance: -1 vida',
     floors: 3,
     type: 'perk'
   },
@@ -75,7 +82,7 @@ export const UPGRADES_POOL: Upgrade[] = [
     id: '👁️',
     name: 'Visão do além',
     icon: 'game-icons:eyeball',
-    description: 'No início do andar, todas as cartas são reveladas por 1 segundo.',
+    description: 'No início do andar, todas as cartas são reveladas por 0.5 segundos.',
     floors: 2,
     type: 'perk'
   },
@@ -101,7 +108,8 @@ export const UPGRADES_POOL: Upgrade[] = [
     id: '💀',
     name: 'Pacto Da Morte',
     icon: 'game-icons:chewed-skull',
-    description: 'tem 10% de chance de começar com um par virado e 50% de chance de perder 1 vida',
+    description: '10% de chance: -1 par \n 50% de chance: -1 vida',
+    floors: 3,
     type: 'curse'
   },
 
@@ -111,6 +119,7 @@ export const UPGRADES_POOL: Upgrade[] = [
     name: 'Lupa de Cristal',
     icon: 'game-icons:magnifying-glass',
     description: 'Revela o par de uma carta clicada',
+    floors: 1,
     type: 'item'
   },
   {
@@ -118,6 +127,7 @@ export const UPGRADES_POOL: Upgrade[] = [
     name: 'Chave do andar',
     icon: 'game-icons:key-lock',
     description: 'Pula para o próximo andar',
+    floors: 1,
     type: 'item'
   },
   {
@@ -125,6 +135,7 @@ export const UPGRADES_POOL: Upgrade[] = [
     name: 'Poção da Loucura',
     icon: 'game-icons:potion-of-madness',
     description: 'Vira e desvira cartas aleatoriamente por 1 segundo',
+    floors: 1,
     type: 'item'
   }
 

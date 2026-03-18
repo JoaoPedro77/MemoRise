@@ -2,8 +2,9 @@
 @import "@nuxt/ui";
 
 @theme static {
-  --font-sans: 'Jersey 10', sans-serif;
   --font-emoji: 'Noto Color Emoji', sans-serif;
+  --font-sans: 'Jersey 10', sans-serif;
+  --font-fredoka: 'Fredoka', sans-serif;
   --font-emoji2: 'Noto Emoji', sans-serif;
 
   --color-night-50:  #F5F5F7;

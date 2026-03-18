@@ -127,20 +127,27 @@ watch(() => gameStore.lives, (newLives, oldLives) => {
     />
     <!-- BARRA LATERAL (Upgrades) -->
     <aside
-      v-if="gameStore.activeUpgrades.length > 0"
+      v-if="gameStore.activeUpgrades.some(u => u?.type !== 'item')"
       class="flex flex-row md:flex-col items-center justify-start md:justify-center gap-3 p-3 bg-neutral-800/50 rounded-xl backdrop-blur-sm md:sticky md:top-25 overflow-x-auto max-w-full no-scrollbar"
     >
       <UTooltip
-        v-for="up in gameStore.activeUpgrades"
-        :key="up?.id"
+        v-for="up in gameStore.activeUpgrades.filter(u => u?.type !== 'item')"
+        :key="up?.instanceId"
         :text="up?.description"
       >
-        <UIcon
-          v-if="up?.type !== 'item'"
-          :name="up?.icon"
-          class="text-xl transition-transform hover:scale-110"
-          :class="up?.type === 'curse' ? 'text-error-500' : 'text-secondary-400'"
-        />
+        <div class="relative group">
+          <UIcon
+            :name="up?.icon"
+            class="text-xl transition-transform hover:scale-110"
+            :class="up?.type === 'curse' ? 'text-error-500' : 'text-secondary-400'"
+          />
+          <span
+            v-if="up?.floorsLeft > 0"
+            class="absolute font-fredoka -top-1 -right-1 flex items-center justify-center bg-neutral-900 border border-white/10 text-[8px] w-3.5 h-3.5 rounded-full text-white"
+          >
+            {{ up.floorsLeft }}
+          </span>
+        </div>
       </UTooltip>
     </aside>
 
@@ -161,15 +168,15 @@ watch(() => gameStore.lives, (newLives, oldLives) => {
 
     <!-- CARTAS DE ITEMS ARRUMAR DEPOIS -->
     <div
+      v-if="gameStore.activeUpgrades.some(u => u?.type === 'item')"
       class="fixed bottom-0 left-2/5 -translate-x-1/2 flex gap-4 pointer-events-none translate-y-15 opacity-80"
     >
       <UTooltip
-        v-for="up in gameStore.activeUpgrades"
-        :key="up?.id"
+        v-for="up in gameStore.activeUpgrades.filter(u => u?.type === 'item')"
+        :key="up?.instanceId"
         :text="up?.description"
       >
         <UIcon
-          v-if="up?.type === 'item'"
           :name="up?.icon"
           class="text-xl transition-transform hover:scale-110 text-neutral-100"
         />
@@ -180,28 +187,54 @@ watch(() => gameStore.lives, (newLives, oldLives) => {
       />
     </div>
 
+    <!-- BOTÃO DE TESTE (DEBUG) -->
+    <div class="fixed top-4 left-4 z-50">
+      <UButton
+        icon="game-icons:test-tubes"
+        color="neutral"
+        variant="ghost"
+        @click="gameStore.triggerTestUpgrade()"
+      />
+    </div>
+
     <UModal
       :open="gameStore.opcoesUpgrade.length > 0 "
       prevent-close
+      size="w-3xl"
     >
       <template #content>
-        <div class="p-8 text-center flex flex-col items-center gap-6">
-          <h2 class="text-4xl flex items-center gap-3 text-error-500 font-black italic">
-            <UIcon name="game-icons:broken-skull" />
-            Loja de Artefatos
-          </h2>
+        <div class="p-2 md:p-8 text-center flex flex-col items-center">
+          <div class="space-y-1">
+            <h2 class="text-4xl flex items-center justify-center gap-3 text-secondary-500 font-black italic">
+              <UIcon name="game-icons:open-treasure-chest" />
+              Relíquias
+            </h2>
+            <p class="text-neutral-400 text-sm font-medium">
+              Escolha um artefato para prosseguir na sua jornada
+            </p>
+          </div>
 
-          <UButton
-            v-for="up in gameStore.opcoesUpgrade"
-            :key="up?.id"
-            :text="up?.description"
-            :icon="up?.icon"
-            :color="up?.type === 'curse' ? 'error' : 'primary'"
-            variant="solid"
-            size="xl"
-            block
-            @click="gameStore.selecionarUpgrade(up)"
-          />
+          <div class="flex flex-wrap justify-center gap-0 sm:gap-2 w-full">
+            <CartaUpgrade
+              v-for="(up, i) in gameStore.opcoesUpgrade"
+              :key="up?.id"
+              :upgrade="up"
+              :index="i"
+              @click="gameStore.selecionarUpgrade(up)"
+            />
+          </div>
+
+          <div class="w-full flex flex-col items-center gap-3 border-t border-white/5 pt-4">
+            <UButton
+              label="Pular Upgrade"
+              icon="game-icons:card-discard"
+              color="secondary"
+              variant="solid"
+              size="lg"
+              class="font-bold w-full justify-center mb-2"
+              @click="gameStore.pularUpgrade()"
+            />
+          </div>
         </div>
       </template>
     </UModal>
