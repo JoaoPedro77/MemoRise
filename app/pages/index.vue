@@ -94,24 +94,41 @@ watch(tabuleiroLimpo, (limpo) => {
 
 const gridColsClass = computed(() => {
   const numCards = gameStore.tabuleiro.length
-  // No PC (MD+), tentamos manter 4 linhas
   const colsPC = Math.ceil(numCards / 4)
 
-  // No Mobile, mantemos a lógica anterior flexível
   let colsMobile = 'grid-cols-4'
   if (numCards <= 4) colsMobile = 'grid-cols-2'
   if (numCards <= 8) colsMobile = 'grid-cols-4'
 
-  return `${colsMobile} md:grid-cols-${colsPC}`
+  return {
+    class: colsMobile,
+    colsPC
+  }
+})
+
+// Efeito de Dano
+const showDamageEffect = ref(false)
+watch(() => gameStore.lives, (newLives, oldLives) => {
+  if (newLives < oldLives && newLives >= 0) {
+    showDamageEffect.value = true
+    setTimeout(() => {
+      showDamageEffect.value = false
+    }, 150)
+  }
 })
 </script>
 
 <template>
   <main class="flex flex-col md:flex-row items-center md:items-start md:justify-center min-h-screen pt-21 px-4 gap-2 overflow-hidden relative">
+    <!-- Efeito de Dano (Overlay) -->
+    <div
+      class="fixed inset-0 z-50 pointer-events-none transition-opacity duration-300 bg-error-500/30"
+      :class="showDamageEffect ? 'opacity-100' : 'opacity-0'"
+    />
     <!-- BARRA LATERAL (Upgrades) -->
     <aside
       v-if="gameStore.activeUpgrades.length > 0"
-      class="flex flex-row md:flex-col items-center justify-center gap-3 p-3 bg-neutral-800/50 rounded-xl backdrop-blur-sm md:sticky md:top-25"
+      class="flex flex-row md:flex-col items-center justify-start md:justify-center gap-3 p-3 bg-neutral-800/50 rounded-xl backdrop-blur-sm md:sticky md:top-25 overflow-x-auto max-w-full no-scrollbar"
     >
       <UTooltip
         v-for="up in gameStore.activeUpgrades"
@@ -119,6 +136,7 @@ const gridColsClass = computed(() => {
         :text="up?.description"
       >
         <UIcon
+          v-if="up?.type !== 'item'"
           :name="up?.icon"
           class="text-xl transition-transform hover:scale-110"
           :class="up?.type === 'curse' ? 'text-error-500' : 'text-secondary-400'"
@@ -128,8 +146,9 @@ const gridColsClass = computed(() => {
 
     <!-- ÁREA DO JOGO -->
     <section
-      class="grid gap-2 md:gap-3 max-w-7xl justify-items-center"
-      :class="gridColsClass"
+      class="grid gap-2 md:gap-3 max-w-7xl justify-items-center md:grid-cols-[repeat(var(--cols-pc),minmax(0,1fr))]"
+      :class="gridColsClass.class"
+      :style="{ '--cols-pc': gridColsClass.colsPC }"
     >
       <CartasJogo
         v-for="(card, j) in gameStore.tabuleiro"
@@ -141,7 +160,20 @@ const gridColsClass = computed(() => {
     </section>
 
     <!-- CARTAS DE ITEMS ARRUMAR DEPOIS -->
-    <div class="fixed bottom-0 left-2/5 -translate-x-1/2 flex gap-4 pointer-events-none translate-y-15 opacity-80">
+    <div
+      class="fixed bottom-0 left-2/5 -translate-x-1/2 flex gap-4 pointer-events-none translate-y-15 opacity-80"
+    >
+      <UTooltip
+        v-for="up in gameStore.activeUpgrades"
+        :key="up?.id"
+        :text="up?.description"
+      >
+        <UIcon
+          v-if="up?.type === 'item'"
+          :name="up?.icon"
+          class="text-xl transition-transform hover:scale-110 text-neutral-100"
+        />
+      </UTooltip>
       <NuxtImg
         src="cartaUpgrade.png"
         class="w-[80px] h-[110px] sm:w-[100px] sm:h-[135px] rotate-3 -translate-y-4 shadow-2xl"
@@ -149,7 +181,33 @@ const gridColsClass = computed(() => {
     </div>
 
     <UModal
-      v-model:open="gameStore.isGameOver"
+      :open="gameStore.opcoesUpgrade.length > 0 "
+      prevent-close
+    >
+      <template #content>
+        <div class="p-8 text-center flex flex-col items-center gap-6">
+          <h2 class="text-4xl flex items-center gap-3 text-error-500 font-black italic">
+            <UIcon name="game-icons:broken-skull" />
+            Loja de Artefatos
+          </h2>
+
+          <UButton
+            v-for="up in gameStore.opcoesUpgrade"
+            :key="up?.id"
+            :text="up?.description"
+            :icon="up?.icon"
+            :color="up?.type === 'curse' ? 'error' : 'primary'"
+            variant="solid"
+            size="xl"
+            block
+            @click="gameStore.selecionarUpgrade(up)"
+          />
+        </div>
+      </template>
+    </UModal>
+
+    <UModal
+      :open="gameStore.isGameOver"
       prevent-close
     >
       <template #content>
@@ -202,10 +260,20 @@ const gridColsClass = computed(() => {
             variant="solid"
             size="xl"
             block
-            @click="gameStore.nextFloor(2); gameStore.iniciarTabuleiro()"
+            @click="gameStore.nextFloor(2)"
           />
         </div>
       </template>
     </UModal>
   </main>
 </template>
+
+<style scoped>
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+</style>

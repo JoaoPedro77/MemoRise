@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { UPGRADES_POOL } from '~/constants/upgrades'
+import { UPGRADES_POOL, type Upgrade } from '~/constants/upgrades'
 import { applyUpgradeEffect } from '~/utils/upgrade-effects'
 import { gerarListaCartasMemoria } from '~/utils/game-logic'
 import { bancoEmojis } from '~/utils/banco-emojis'
@@ -9,19 +9,25 @@ export const useGameStore = defineStore('game', () => {
   const tabuleiro = ref<Card[]>([])
 
   const lives = ref(3)
-  const floor = ref({ number: 1, goal: 22, time: -1 })
-  const collectedUpgradeIds = ref<string[]>(['👀', '✂️', '⌚', '🎲', '🪦'])
+  const floor = ref({ number: 1, goal: 4, time: -1 })
+  const collectedUpgradeIds = ref<string[]>(['❤️', '📄', '👀', '⌛', '✂️', '💪', '🎲', '🪦', '👁️', '🛏️', '⌚', '💀', '🔍', '🔑', '🧪'])
   const isGameOver = ref(false)
   const pairsFoundInAndar = ref(0)
-
+  const opcoesUpgrade = ref<Upgrade[]>([])
   const activeUpgrades = computed(() => {
     return collectedUpgradeIds.value.map(id =>
       UPGRADES_POOL.find(u => u.id === id)
     ).filter(Boolean)
   })
 
+  function selecionarUpgrade(upgrade: Upgrade) {
+    addUpgrade(upgrade.id)
+    opcoesUpgrade.value = []
+    iniciarTabuleiro()
+  }
+
   function iniciarTabuleiro() {
-    tabuleiro.value = gerarListaCartasMemoria(bancoEmojis, { totalPares: (floor.value.goal <= maxBoardSize) ? floor.value.goal : maxBoardSize, colunas: 4 })
+    tabuleiro.value = gerarListaCartasMemoria(bancoEmojis, (floor.value.goal <= maxBoardSize) ? floor.value.goal : maxBoardSize)
   }
 
   function registerMatch() {
@@ -56,12 +62,23 @@ export const useGameStore = defineStore('game', () => {
   }
 
   function nextFloor(addToGoal: number) {
+    const floorJustFinished = floor.value.number
     floor.value.number++
     floor.value.goal += addToGoal
     pairsFoundInAndar.value = 0
+
+    if (floorJustFinished % 2 === 0) {
+      opcoesUpgrade.value = [...UPGRADES_POOL]
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 3)
+    } else {
+      iniciarTabuleiro()
+    }
   }
 
   return {
+    opcoesUpgrade,
+    selecionarUpgrade,
     lives,
     floor,
     collectedUpgradeIds,
