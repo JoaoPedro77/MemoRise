@@ -16,6 +16,22 @@ export interface CollectedUpgrade {
 export const UPGRADES_POOL: Upgrade[] = [
   // Perks
   {
+    id: '🛏️',
+    name: 'Sonho ruim',
+    icon: 'game-icons:bed',
+    description: 'Se você morrer, volta para o andar anterior com 1 vida',
+    floors: 3,
+    type: 'perk'
+  },
+  {
+    id: '📄',
+    name: 'Contrato com a Morte',
+    icon: 'game-icons:reaper-scythe',
+    description: 'Permite ver a mesma carta 2x sem perder vida',
+    floors: 5,
+    type: 'perk'
+  },
+  {
     id: '👁️',
     name: 'Visão do além',
     icon: 'game-icons:eyeball',
@@ -30,14 +46,7 @@ export const UPGRADES_POOL: Upgrade[] = [
     description: '+1 Vida',
     type: 'perk'
   },
-  {
-    id: '📄',
-    name: 'Contrato com a Morte',
-    icon: 'game-icons:reaper-scythe',
-    description: 'Permite ver a mesma carta 2x sem perder vida',
-    floors: 5,
-    type: 'perk'
-  },
+
   {
     id: '👀',
     name: 'Visão Aguçada',
@@ -74,42 +83,34 @@ export const UPGRADES_POOL: Upgrade[] = [
     id: '🎲',
     name: 'Sorte de principiante',
     icon: 'game-icons:dice-fire',
-    description: 'tem 2% de chance de começar com um par virado',
-    floors: 4,
-    type: 'perk'
-  },
-  {
-    id: '🪦',
-    name: 'Pacto maldito',
-    icon: 'game-icons:skull-in-jar',
-    description: '30% de chance: -1 par \n 20% de chance: -1 vida',
-    floors: 3,
-    type: 'perk'
-  },
-  {
-    id: '🛏️',
-    name: 'Sonho ruim',
-    icon: 'game-icons:bed',
-    description: 'Se você morrer, volta para o andar anterior com 1 vida',
-    floors: 4,
+    description: 'tem 2% de chance de começar com -1 par',
+    floors: 20,
     type: 'perk'
   },
   {
     id: '⌚',
     name: 'Mão do tempo',
     icon: 'game-icons:pocket-watch',
-    description: 'Se você clicar em uma carta que já viu, ela não vira, mas você perde 5 segundos de tempo.',
+    description: 'Se você clicar em uma carta que já viu, ela não vira, mas você perde 30 segundos de tempo.',
     floors: 3,
     type: 'perk'
   },
 
   // Maldições
   {
+    id: '🪦',
+    name: 'Pacto maldito',
+    icon: 'game-icons:skull-in-jar',
+    description: '30% de chance: -1 par \n 10% de chance: -1 vida',
+    floors: 5,
+    type: 'curse'
+  },
+  {
     id: '💀',
     name: 'Pacto Da Morte',
     icon: 'game-icons:chewed-skull',
-    description: '10% de chance: -1 par \n 50% de chance: -1 vida',
-    floors: 3,
+    description: '30% de chance: -4 par \n 50% de chance: -1 vida',
+    floors: 5,
     type: 'curse'
   },
 

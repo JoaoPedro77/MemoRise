@@ -3,7 +3,7 @@ import { UPGRADES_POOL, type Upgrade, type CollectedUpgrade } from '~/constants/
 import { applyUpgradeEffect, getFloorTime } from '~/utils/upgrade-effects'
 import { gerarListaCartasMemoria } from '~/utils/game-logic'
 import { bancoEmojis } from '~/utils/banco-emojis'
-import { maxBoardSize, maxLives, INITIAL_LIVES, INITIAL_GOAL } from '~/constants/constantes'
+import { maxBoardSize, maxLives, INITIAL_LIVES, INITIAL_GOAL, GOAL_INCREMENT_PER_FLOOR } from '~/constants/constantes'
 
 export const useGameStore = defineStore('game', () => {
   const tabuleiro = ref<Card[]>([])
@@ -12,6 +12,8 @@ export const useGameStore = defineStore('game', () => {
   const lives = ref(INITIAL_LIVES)
   const floor = ref({ number: 1, goal: INITIAL_GOAL, time: -1 })
   const { start: startTimer, stop: stopTimer, timeRemaining } = useTimer()
+  const comboStreak = ref(0)
+  const floorGoalModifier = ref(0)
 
   const collectedUpgrades = ref<CollectedUpgrade[]>([])
   const isGameOver = ref(false)
@@ -25,7 +27,15 @@ export const useGameStore = defineStore('game', () => {
   })
 
   const pairsRemaining = computed(() => {
-    return Math.max(0, floor.value.goal - pairsFoundInAndar.value)
+    return Math.max(0, currentGoal.value - pairsFoundInAndar.value)
+  })
+
+  const currentGoal = computed(() => {
+    let goal = floor.value.goal
+    if (activeUpgrades.value.some(up => up.id === '✂️')) {
+      goal = Math.floor(goal / 2)
+    }
+    return Math.max(1, goal - floorGoalModifier.value)
   })
 
   function selecionarUpgrade(upgrade: Upgrade) {
@@ -41,7 +51,26 @@ export const useGameStore = defineStore('game', () => {
 
   function iniciarTabuleiro() {
     stopTimer()
-    tabuleiro.value = gerarListaCartasMemoria(bancoEmojis, (floor.value.goal <= maxBoardSize) ? floor.value.goal : maxBoardSize)
+    floorGoalModifier.value = 0
+
+    // Sorte de Principiante (🎲)
+    if (activeUpgrades.value.some(up => up.id === '🎲') && Math.random() < 0.02) {
+      floorGoalModifier.value++
+    }
+
+    // Pacto Maldito (🪦)
+    if (activeUpgrades.value.some(up => up.id === '🪦')) {
+      if (Math.random() < 0.30) floorGoalModifier.value++
+      if (Math.random() < 0.10) loseLife()
+    }
+
+    // Pacto da Morte (💀)
+    if (activeUpgrades.value.some(up => up.id === '💀')) {
+      if (Math.random() < 0.30) floorGoalModifier.value += 4
+      if (Math.random() < 0.50) loseLife()
+    }
+
+    tabuleiro.value = gerarListaCartasMemoria(bancoEmojis, (currentGoal.value <= maxBoardSize) ? currentGoal.value : maxBoardSize)
 
     // Cálculo do Tempo do Andar (Centralizado)
     const floorTime = getFloorTime(floor.value.number, collectedUpgrades.value)
@@ -50,7 +79,7 @@ export const useGameStore = defineStore('game', () => {
       timeRemaining.value = -1
     } else {
       startTimer(floorTime, () => {
-        isGameOver.value = true
+        handleDeath()
       })
     }
 
@@ -74,9 +103,20 @@ export const useGameStore = defineStore('game', () => {
 
   function registerMatch() {
     pairsFoundInAndar.value++
-    if (pairsFoundInAndar.value >= floor.value.goal) {
+    comboStreak.value++
+
+    if (comboStreak.value === 3 && activeUpgrades.value.some(up => up.id === '💪')) {
+      addLife()
+      comboStreak.value = 0
+    }
+
+    if (pairsFoundInAndar.value >= currentGoal.value) {
       stopTimer()
     }
+  }
+
+  function resetStreak() {
+    comboStreak.value = 0
   }
 
   function addUpgrade(id: string) {
@@ -113,9 +153,27 @@ export const useGameStore = defineStore('game', () => {
     applyUpgradeEffect(id, { lives, floor })
   }
 
+  function handleDeath() {
+    const hasBadDream = collectedUpgrades.value.some(up => up.id === '🛏️')
+
+    if (hasBadDream && floor.value.number > 1) {
+      // Consumir o upgrade (Sonho Ruim)
+      collectedUpgrades.value = collectedUpgrades.value.filter(up => up.id !== '🛏️')
+
+      lives.value = 1
+      floor.value.number--
+      floor.value.goal -= GOAL_INCREMENT_PER_FLOOR
+      pairsFoundInAndar.value = 0
+
+      iniciarTabuleiro()
+    } else {
+      isGameOver.value = true
+    }
+  }
+
   function loseLife() {
     if (lives.value > 0) lives.value--
-    if (lives.value === 0) isGameOver.value = true
+    if (lives.value === 0) handleDeath()
   }
 
   function addLife() {
@@ -148,6 +206,7 @@ export const useGameStore = defineStore('game', () => {
     floor.value.number++
     floor.value.goal += addToGoal
     pairsFoundInAndar.value = 0
+    resetStreak()
 
     // Gerenciar duração dos upgrades
     collectedUpgrades.value = collectedUpgrades.value
@@ -193,11 +252,13 @@ export const useGameStore = defineStore('game', () => {
     pairsFoundInAndar,
     activeUpgrades,
     pairsRemaining,
+    currentGoal,
     loseLife,
     addLife,
     resetRun,
     nextFloor,
     registerMatch,
+    resetStreak,
     addUpgrade,
     iniciarTabuleiro,
     tabuleiro,

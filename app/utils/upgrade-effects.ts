@@ -5,9 +5,6 @@ export const applyUpgradeEffect = (upgradeId: string, state: { lives: Ref<number
     case '❤️':
       state.lives.value++
       break
-    case '✂️':
-      state.floor.value.goal = Math.floor(state.floor.value.goal / 2)
-      break
   }
 }
 

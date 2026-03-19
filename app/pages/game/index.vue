@@ -65,7 +65,27 @@ function handleSuccess() {
 }
 
 function handleFailure() {
-  if (secondCard.value?.jaViu || firstCard.value?.jaViu) gameStore.loseLife()
+  gameStore.resetStreak()
+  const hasContract = gameStore.activeUpgrades.some(u => u.id === '📄')
+
+  let loseLife = false
+  if (firstCard.value?.jaViu) {
+    if (hasContract && !firstCard.value.usouSegundaChance) {
+      firstCard.value.usouSegundaChance = true
+    } else {
+      loseLife = true
+    }
+  }
+
+  if (secondCard.value?.jaViu) {
+    if (hasContract && !secondCard.value.usouSegundaChance) {
+      secondCard.value.usouSegundaChance = true
+    } else {
+      loseLife = true
+    }
+  }
+
+  if (loseLife) gameStore.loseLife()
 
   // Vira de volta após um tempo
   setTimeout(() => {
@@ -86,7 +106,7 @@ const tabuleiroLimpo = computed(() => {
 })
 
 const ganhouFase = computed(() => {
-  return gameStore.pairsFoundInAndar >= gameStore.floor.goal
+  return gameStore.pairsFoundInAndar >= gameStore.currentGoal
 })
 
 watch(tabuleiroLimpo, (limpo) => {
