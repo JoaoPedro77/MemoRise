@@ -68,16 +68,17 @@ useSeoMeta({
                 class="text-primary-500 text-2xl"
               />
               <span class="text-2xl font-bold select-none">
-                {{ gameStore.floor.goal }}
+                {{ gameStore.pairsRemaining }}
               </span>
             </div>
             <div class="flex items-center gap-1">
               <UIcon
                 name="game-icons:hourglass"
                 class="text-primary-500 text-2xl"
+                :class="{ 'animate-pulse text-error-500': gameStore.timeRemaining !== -1 && gameStore.timeRemaining < 30 }"
               />
               <span class="text-2xl font-bold select-none">
-                {{ gameStore.floor.time < 0 ? '∞' : gameStore.floor.time }}
+                {{ gameStore.timeRemaining === -1 ? '∞' : `${Math.floor(gameStore.timeRemaining / 60)}:${(gameStore.timeRemaining % 60).toString().padStart(2, '0')}` }}
               </span>
             </div>
           </div>

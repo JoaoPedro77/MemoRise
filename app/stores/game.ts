@@ -1,15 +1,18 @@
 import { defineStore } from 'pinia'
 import { UPGRADES_POOL, type Upgrade, type CollectedUpgrade } from '~/constants/upgrades'
-import { applyUpgradeEffect } from '~/utils/upgrade-effects'
+import { applyUpgradeEffect, getFloorTime } from '~/utils/upgrade-effects'
 import { gerarListaCartasMemoria } from '~/utils/game-logic'
 import { bancoEmojis } from '~/utils/banco-emojis'
-import { maxBoardSize, maxLives } from '~/constants/constantes'
+import { maxBoardSize, maxLives, INITIAL_LIVES, INITIAL_GOAL } from '~/constants/constantes'
 
 export const useGameStore = defineStore('game', () => {
   const tabuleiro = ref<Card[]>([])
 
-  const lives = ref(3)
-  const floor = ref({ number: 1, goal: 4, time: -1 })
+  const gameStarted = ref(false)
+  const lives = ref(INITIAL_LIVES)
+  const floor = ref({ number: 1, goal: INITIAL_GOAL, time: -1 })
+  const { start: startTimer, stop: stopTimer, timeRemaining } = useTimer()
+
   const collectedUpgrades = ref<CollectedUpgrade[]>([])
   const isGameOver = ref(false)
   const pairsFoundInAndar = ref(0)
@@ -19,6 +22,10 @@ export const useGameStore = defineStore('game', () => {
       const metadata = UPGRADES_POOL.find(u => u.id === cu.id)
       return metadata ? { ...metadata, floorsLeft: cu.floorsLeft, instanceId: cu.instanceId } : null
     }).filter(Boolean) as (Upgrade & { floorsLeft: number, instanceId: string })[]
+  })
+
+  const pairsRemaining = computed(() => {
+    return Math.max(0, floor.value.goal - pairsFoundInAndar.value)
   })
 
   function selecionarUpgrade(upgrade: Upgrade) {
@@ -33,11 +40,43 @@ export const useGameStore = defineStore('game', () => {
   }
 
   function iniciarTabuleiro() {
+    stopTimer()
     tabuleiro.value = gerarListaCartasMemoria(bancoEmojis, (floor.value.goal <= maxBoardSize) ? floor.value.goal : maxBoardSize)
+
+    // Cálculo do Tempo do Andar (Centralizado)
+    const floorTime = getFloorTime(floor.value.number, collectedUpgrades.value)
+
+    if (floorTime === -1) {
+      timeRemaining.value = -1
+    } else {
+      startTimer(floorTime, () => {
+        isGameOver.value = true
+      })
+    }
+
+    // Visão do além: Revelar cards por 0.5s após terminarem de aparecer
+    if (activeUpgrades.value.some(up => up.id === '👁️')) {
+      const currentCards = tabuleiro.value
+      currentCards.forEach(card => card.revelada = true)
+
+      // Cálculo do tempo: (delay do último card) + (duração da animação) + (tempo de exibição)
+      // delay = index * 100ms, animação = 500ms, exibição = 500ms
+      const totalAppearTime = (currentCards.length - 1) * 100 + 500
+      const peekTime = 500
+
+      setTimeout(() => {
+        currentCards.forEach((card) => {
+          if (!card.combinada) card.revelada = false
+        })
+      }, totalAppearTime + peekTime)
+    }
   }
 
   function registerMatch() {
     pairsFoundInAndar.value++
+    if (pairsFoundInAndar.value >= floor.value.goal) {
+      stopTimer()
+    }
   }
 
   function addUpgrade(id: string) {
@@ -84,15 +123,24 @@ export const useGameStore = defineStore('game', () => {
   }
 
   function resetRun() {
-    lives.value = 3
+    stopTimer()
+    lives.value = INITIAL_LIVES
     isGameOver.value = false
     floor.value = {
       number: 1,
-      goal: 4,
+      goal: INITIAL_GOAL,
       time: -1
     }
+    timeRemaining.value = -1
     collectedUpgrades.value = []
     pairsFoundInAndar.value = 0
+    gameStarted.value = false
+  }
+
+  function startNewGame() {
+    resetRun()
+    gameStarted.value = true
+    iniciarTabuleiro()
   }
 
   function nextFloor(addToGoal: number) {
@@ -144,6 +192,7 @@ export const useGameStore = defineStore('game', () => {
     isGameOver,
     pairsFoundInAndar,
     activeUpgrades,
+    pairsRemaining,
     loseLife,
     addLife,
     resetRun,
@@ -151,6 +200,9 @@ export const useGameStore = defineStore('game', () => {
     registerMatch,
     addUpgrade,
     iniciarTabuleiro,
-    tabuleiro
+    tabuleiro,
+    timeRemaining,
+    gameStarted,
+    startNewGame
   }
 })

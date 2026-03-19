@@ -16,6 +16,14 @@ export interface CollectedUpgrade {
 export const UPGRADES_POOL: Upgrade[] = [
   // Perks
   {
+    id: '👁️',
+    name: 'Visão do além',
+    icon: 'game-icons:eyeball',
+    description: 'todas as cartas aparecem vidas pra cima no começo da partida',
+    floors: 2,
+    type: 'perk'
+  },
+  {
     id: '❤️',
     name: 'Coração Extra',
     icon: 'game-icons:heart-bottle',
@@ -76,14 +84,6 @@ export const UPGRADES_POOL: Upgrade[] = [
     icon: 'game-icons:skull-in-jar',
     description: '30% de chance: -1 par \n 20% de chance: -1 vida',
     floors: 3,
-    type: 'perk'
-  },
-  {
-    id: '👁️',
-    name: 'Visão do além',
-    icon: 'game-icons:eyeball',
-    description: 'No início do andar, todas as cartas são reveladas por 0.5 segundos.',
-    floors: 2,
     type: 'perk'
   },
   {
