@@ -22,6 +22,11 @@ export const useGameStore = defineStore('game', () => {
   // Itens e Ativações
   const selectedItemInstanceId = ref<string | null>(null)
   const isLupaActive = ref(false)
+  const toast = useToast()
+
+  const isTurnInProgress = computed(() => {
+    return tabuleiro.value.some(card => card.revelada && !card.combinada)
+  })
 
   const collectedUpgrades = ref<CollectedUpgrade[]>([])
   const isGameOver = ref(false)
@@ -212,6 +217,17 @@ export const useGameStore = defineStore('game', () => {
     }
   }
 
+  function showToast(message: string) {
+    toast.add({
+      id: 'toast',
+      title: 'Ação Bloqueada',
+      description: message,
+      icon: 'i-lucide-triangle-alert',
+      color: 'error',
+      duration: 3000
+    })
+  }
+
   function selectItem(instanceId: string) {
     if (selectedItemInstanceId.value === instanceId) {
       selectedItemInstanceId.value = null
@@ -225,6 +241,11 @@ export const useGameStore = defineStore('game', () => {
   }
 
   function activateItem(instanceId: string) {
+    if (isTurnInProgress.value) {
+      showToast('Termine sua jogada antes de usar um item!')
+      return
+    }
+
     const item = activeUpgrades.value.find(up => up.instanceId === instanceId)
     if (!item) return
 
@@ -363,6 +384,8 @@ export const useGameStore = defineStore('game', () => {
     selectItem,
     deselectItem,
     activateItem,
-    isLupaActive
+    isLupaActive,
+    isTurnInProgress,
+    showToast
   }
 })

@@ -127,7 +127,7 @@ export const UPGRADES_POOL: Upgrade[] = [
     id: '🔍',
     name: 'Lupa de Cristal',
     icon: 'game-icons:magnifying-glass',
-    description: 'Revela o par de uma carta clicada',
+    description: 'a proxima carta clicada revela ser par',
     floors: 1,
     type: 'item'
   },

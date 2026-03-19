@@ -15,6 +15,7 @@ const hasMovedSignificant = ref(false)
 const startY = ref(0)
 const currentY = ref(0)
 const dragThreshold = -60 // Quanto precisa arrastar a mais pra cima pra ativar
+const gameStore = useGameStore()
 
 const dragOffset = computed(() => {
   if (!isDragging.value) return 0
@@ -22,6 +23,10 @@ const dragOffset = computed(() => {
 })
 
 const handlePointerDown = (e: PointerEvent) => {
+  if (gameStore.isTurnInProgress && !props.selected) {
+    gameStore.showToast('Termine sua jogada antes de usar um item!')
+    return
+  }
   isDragging.value = true
   hasMovedSignificant.value = false
   startY.value = e.clientY
@@ -39,16 +44,13 @@ const handlePointerMove = (e: PointerEvent) => {
 
 const handlePointerUp = (e: PointerEvent) => {
   if (!isDragging.value) return
-  
+
   const baseLift = props.selected ? -60 : 0
   const totalLift = baseLift + dragOffset.value
 
-  // Se não moveu quase nada, trata como clique
   if (!hasMovedSignificant.value) {
     emit('click')
-  }
-  // Arrastou o suficiente pra cima
-  else if (totalLift <= (baseLift + dragThreshold)) {
+  } else if (totalLift <= (baseLift + dragThreshold)) {
     emit('activate')
   }
 
@@ -69,13 +71,12 @@ const cardTransform = computed(() => {
   ).toFixed(2)
 
   const tilt = isOutside.value || isDragging.value ? '' : `perspective(500px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`
-  
+
   const baseLift = props.selected ? -60 : 0
   let liftValue = baseLift
   if (isDragging.value) {
     liftValue = baseLift + dragOffset.value
   }
-
   let scale = props.selected ? 1.1 : 1
   if (isReadyToActivate.value) {
     scale = 1.3
@@ -112,21 +113,22 @@ const isReadyToActivate = computed(() => {
       <!-- Fundo da Carta -->
       <NuxtImg
         src="carta5.png"
-        class="w-full h-full object-contain drop-shadow-xl"
+        class="w-full h-full object-contain drop-shadow-xl transition-all"
         :class="{
           'brightness-125 saturate-110': selected || isDragging,
-          'brightness-150 saturate-150': isReadyToActivate
+          'brightness-150 saturate-150': isReadyToActivate,
+          'saturate-[0.4]': gameStore.isTurnInProgress && !selected
         }"
       />
 
       <!-- Conteúdo (Invertido: Nome em cima, Logo embaixo) -->
-      <div class="absolute inset-0 flex flex-col items-center justify-start p-2 pt-4 gap-1 text-center select-none">
-        <h3 class="text-[9px] sm:text-[11px] font-black text-neutral-900/80 leading-tight uppercase px-2 mb-1">
+      <div class="absolute inset-0 flex flex-col items-center justify-center p-2 gap-1 text-center select-none">
+        <h3 class="text-[9px] sm:text-[10px] font-black text-neutral-900/80 leading-tight uppercase px-1">
           {{ item.name }}
         </h3>
         <UIcon
           :name="item.icon"
-          class="text-3xl sm:text-4xl text-pink-800 drop-shadow-sm"
+          class="text-2xl sm:text-3xl text-pink-800 drop-shadow-sm"
         />
       </div>
     </div>
