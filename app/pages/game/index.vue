@@ -21,10 +21,16 @@ onMounted(() => {
 const firstCard = ref<Card | null>(null)
 const secondCard = ref<Card | null>(null)
 const lockBoard = ref(false)
+const lastClickPos = ref({ x: 0, y: 0 })
 
-function selectCard(card: Card) {
+function selectCard(card: Card, event?: MouseEvent) {
   // Ignora se já estiver virada, combinada ou se o tabuleiro estiver travado
   if (card.revelada || card.combinada || lockBoard.value) return
+
+  if (event) {
+    lastClickPos.value = { x: event.clientX, y: event.clientY }
+  }
+
   card.revelada = true
 
   if (!firstCard.value) {
@@ -93,7 +99,7 @@ function handleFailure() {
   }
 
   if (penaltyTime && !loseLife) {
-    gameStore.subtractTime(30)
+    gameStore.subtractTime(30, lastClickPos.value.x, lastClickPos.value.y)
   } else if (loseLife) {
     gameStore.loseLife()
   }
@@ -218,7 +224,7 @@ watch(() => gameStore.gameStarted, (started) => {
         :key="card.id"
         :card="card"
         :index="j"
-        @click="selectCard(card)"
+        @click="selectCard(card, $event)"
       />
     </section>
 

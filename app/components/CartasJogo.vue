@@ -31,7 +31,7 @@ const cardTransform = computed(() => {
     class="relative w-[75px] h-[100px] sm:w-[90px] sm:h-[120px] md:w-[100px] md:h-[135px] cursor-pointer anim-entrada"
     style="perspective: 1000px"
     :style="{ '--delay': `${index * 0.1}s` }"
-    @click="$emit('click')"
+    @click="$emit('click', $event)"
   >
     <!-- Container que faz o TILT (Efeito do mouse) -->
     <div

@@ -71,15 +71,27 @@ useSeoMeta({
                 {{ gameStore.pairsRemaining }}
               </span>
             </div>
-            <div class="flex items-center gap-1">
+            <div class="flex items-center gap-1 relative">
               <UIcon
                 name="game-icons:hourglass"
                 class="text-primary-500 text-2xl"
-                :class="{ 'animate-pulse text-error-500': gameStore.timeRemaining !== -1 && gameStore.timeRemaining < 30 }"
+                :class="{
+                  'animate-pulse text-error-500': gameStore.timeRemaining !== -1 && gameStore.timeRemaining < 30,
+                  'animate-shake': gameStore.showTimePenaltyAnim
+                }"
               />
               <span class="text-2xl font-bold select-none">
                 {{ gameStore.timeRemaining === -1 ? '∞' : `${Math.floor(gameStore.timeRemaining / 60)}:${(gameStore.timeRemaining % 60).toString().padStart(2, '0')}` }}
               </span>
+
+              <!-- Penalty Animation -->
+              <div
+                v-if="gameStore.showTimePenaltyAnim"
+                class="fixed text-error-500 font-bold text-4xl pointer-events-none z-2000 -translate-x-1/2 penalty-float"
+                :style="{ left: gameStore.penaltyPos.x + 'px', top: gameStore.penaltyPos.y + 'px' }"
+              >
+                -{{ gameStore.lastTimePenalty }}s
+              </div>
             </div>
           </div>
         </div>
@@ -93,3 +105,41 @@ useSeoMeta({
     <EyeAnimation v-if="gameStore.showEyeAnimation" />
   </UApp>
 </template>
+
+<style>
+.penalty-float {
+  text-shadow:
+    2px 2px 0 #0a0a0a,
+    -2px -2px 0 #0a0a0a,
+    2px -2px 0 #0a0a0a,
+    -2px 2px 0 #0a0a0a,
+    0 4px 10px rgba(0,0,0,0.5);
+  animation: float-up-anim 1s ease-out forwards;
+}
+
+@keyframes float-up-anim {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 0);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -30px);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -80px);
+  }
+}
+
+.animate-shake {
+  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+</style>

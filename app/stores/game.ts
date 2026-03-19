@@ -15,6 +15,9 @@ export const useGameStore = defineStore('game', () => {
   const comboStreak = ref(0)
   const floorGoalModifier = ref(0)
   const showEyeAnimation = ref(false)
+  const lastTimePenalty = ref(0)
+  const showTimePenaltyAnim = ref(false)
+  const penaltyPos = ref({ x: 0, y: 0 })
 
   const collectedUpgrades = ref<CollectedUpgrade[]>([])
   const isGameOver = ref(false)
@@ -186,9 +189,22 @@ export const useGameStore = defineStore('game', () => {
     if (lives.value < maxLives) lives.value++
   }
 
-  function subtractTime(seconds: number) {
+  function subtractTime(seconds: number, x: number = 0, y: number = 0) {
     if (timeRemaining.value !== -1) {
+      const oldTime = timeRemaining.value
       timeRemaining.value = Math.max(0, timeRemaining.value - seconds)
+      lastTimePenalty.value = oldTime - timeRemaining.value
+
+      penaltyPos.value = { x, y }
+      showTimePenaltyAnim.value = true
+      setTimeout(() => {
+        showTimePenaltyAnim.value = false
+      }, 1000)
+
+      if (timeRemaining.value === 0 && oldTime > 0) {
+        stopTimer()
+        handleDeath()
+      }
     }
   }
 
@@ -277,6 +293,9 @@ export const useGameStore = defineStore('game', () => {
     tabuleiro,
     timeRemaining,
     showEyeAnimation,
+    lastTimePenalty,
+    showTimePenaltyAnim,
+    penaltyPos,
     gameStarted,
     startNewGame
   }
