@@ -16,6 +16,14 @@ export interface CollectedUpgrade {
 export const UPGRADES_POOL: Upgrade[] = [
   // Perks
   {
+    id: '⌚',
+    name: 'Relógio de bolso',
+    icon: 'game-icons:pocket-watch',
+    description: 'Clicar em uma carta já vista, não dá dano, mas perde 30 segundos.',
+    floors: 2,
+    type: 'perk'
+  },
+  {
     id: '🛏️',
     name: 'Sonho ruim',
     icon: 'game-icons:bed',
@@ -85,14 +93,6 @@ export const UPGRADES_POOL: Upgrade[] = [
     icon: 'game-icons:dice-fire',
     description: 'tem 2% de chance de começar com -1 par',
     floors: 20,
-    type: 'perk'
-  },
-  {
-    id: '⌚',
-    name: 'Mão do tempo',
-    icon: 'game-icons:pocket-watch',
-    description: 'Se você clicar em uma carta que já viu, ela não vira, mas você perde 30 segundos de tempo.',
-    floors: 3,
     type: 'perk'
   },
 

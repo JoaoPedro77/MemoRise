@@ -14,6 +14,7 @@ export const useGameStore = defineStore('game', () => {
   const { start: startTimer, stop: stopTimer, timeRemaining } = useTimer()
   const comboStreak = ref(0)
   const floorGoalModifier = ref(0)
+  const showEyeAnimation = ref(false)
 
   const collectedUpgrades = ref<CollectedUpgrade[]>([])
   const isGameOver = ref(false)
@@ -165,6 +166,11 @@ export const useGameStore = defineStore('game', () => {
       floor.value.goal -= GOAL_INCREMENT_PER_FLOOR
       pairsFoundInAndar.value = 0
 
+      showEyeAnimation.value = true
+      setTimeout(() => {
+        showEyeAnimation.value = false
+      }, 2000)
+
       iniciarTabuleiro()
     } else {
       isGameOver.value = true
@@ -178,6 +184,12 @@ export const useGameStore = defineStore('game', () => {
 
   function addLife() {
     if (lives.value < maxLives) lives.value++
+  }
+
+  function subtractTime(seconds: number) {
+    if (timeRemaining.value !== -1) {
+      timeRemaining.value = Math.max(0, timeRemaining.value - seconds)
+    }
   }
 
   function resetRun() {
@@ -255,6 +267,7 @@ export const useGameStore = defineStore('game', () => {
     currentGoal,
     loseLife,
     addLife,
+    subtractTime,
     resetRun,
     nextFloor,
     registerMatch,
@@ -263,6 +276,7 @@ export const useGameStore = defineStore('game', () => {
     iniciarTabuleiro,
     tabuleiro,
     timeRemaining,
+    showEyeAnimation,
     gameStarted,
     startNewGame
   }

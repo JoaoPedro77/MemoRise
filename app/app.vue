@@ -89,5 +89,7 @@ useSeoMeta({
     <UMain class="flex-1 h-dvh min-h-0">
       <NuxtPage />
     </UMain>
+
+    <EyeAnimation v-if="gameStore.showEyeAnimation" />
   </UApp>
 </template>

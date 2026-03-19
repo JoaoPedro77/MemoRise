@@ -67,11 +67,16 @@ function handleSuccess() {
 function handleFailure() {
   gameStore.resetStreak()
   const hasContract = gameStore.activeUpgrades.some(u => u.id === '📄')
+  const hasPocketWatch = gameStore.activeUpgrades.some(u => u.id === '⌚')
 
   let loseLife = false
+  let penaltyTime = false
+
   if (firstCard.value?.jaViu) {
     if (hasContract && !firstCard.value.usouSegundaChance) {
       firstCard.value.usouSegundaChance = true
+    } else if (hasPocketWatch) {
+      penaltyTime = true
     } else {
       loseLife = true
     }
@@ -80,12 +85,18 @@ function handleFailure() {
   if (secondCard.value?.jaViu) {
     if (hasContract && !secondCard.value.usouSegundaChance) {
       secondCard.value.usouSegundaChance = true
+    } else if (hasPocketWatch) {
+      penaltyTime = true
     } else {
       loseLife = true
     }
   }
 
-  if (loseLife) gameStore.loseLife()
+  if (penaltyTime && !loseLife) {
+    gameStore.subtractTime(30)
+  } else if (loseLife) {
+    gameStore.loseLife()
+  }
 
   // Vira de volta após um tempo
   setTimeout(() => {
