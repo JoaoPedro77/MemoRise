@@ -33,7 +33,7 @@ export const UPGRADES_POOL: Upgrade[] = [
   },
   {
     id: '📄',
-    name: 'Contrato com a Morte',
+    name: 'Contrato da Morte',
     icon: 'game-icons:reaper-scythe',
     description: 'Permite ver a mesma carta 2x sem perder vida',
     floors: 5,
@@ -43,7 +43,7 @@ export const UPGRADES_POOL: Upgrade[] = [
     id: '👁️',
     name: 'Visão do além',
     icon: 'game-icons:eyeball',
-    description: 'todas as cartas aparecem vidas pra cima no começo da partida',
+    description: 'todas as cartas aparecem desviradas no começo da partida',
     floors: 2,
     type: 'perk'
   },
@@ -136,7 +136,7 @@ export const UPGRADES_POOL: Upgrade[] = [
     id: '🧪',
     name: 'Poção da Loucura',
     icon: 'game-icons:potion-of-madness',
-    description: 'Vira e desvira cartas aleatoriamente por 1 segundo',
+    description: 'Vira e desvira cartas aleatoriamente por um tempo',
     floors: 1,
     type: 'item'
   }

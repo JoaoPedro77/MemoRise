@@ -112,7 +112,7 @@ const isReadyToActivate = computed(() => {
     >
       <!-- Fundo da Carta -->
       <NuxtImg
-        src="carta5.png"
+        src="carta6.png"
         class="w-full h-full object-contain drop-shadow-xl transition-all"
         :class="{
           'brightness-125 saturate-110': selected || isDragging,

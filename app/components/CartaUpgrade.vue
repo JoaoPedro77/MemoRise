@@ -69,7 +69,7 @@ const typecolor = computed(() => {
       />
 
       <!-- Conteúdo por cima da arte -->
-      <div class="absolute inset-0 flex flex-col items-center justify-baseline p-3 pt-3 gap-4 sm:pt-3.5 text-center select-none">
+      <div class="absolute inset-0 flex flex-col items-center justify-baseline p-2 pt-3 gap-4 sm:pt-3.5 text-center select-none">
         <h3 class="text-sm sm:text-lg font-black text-neutral-900/80 leading-tight uppercase">
           {{ upgrade.name }}
         </h3>
@@ -80,7 +80,7 @@ const typecolor = computed(() => {
         />
 
         <div class="space-y-1 px-1">
-          <p class="text-xs sm:text-xs text-neutral-900/80 line-clamp-3 leading-tight font-bold italic">
+          <p class="text-xs sm:text- pb-1 sm:pb-2 text-neutral-900/80 line-clamp-3 leading-tight font-bold italic">
             {{ upgrade.description }}
           </p>
         </div>
