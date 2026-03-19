@@ -46,6 +46,19 @@ function selectCard(card: Card, event?: MouseEvent) {
       checkMatch()
     }, DELAY_CHECK_MATCH)
   }
+
+  // Lógica da Lupa de Cristal
+  if (gameStore.isLupaActive) {
+    const pair = gameStore.tabuleiro.find(c => c.valor === card.valor && c.id !== card.id)
+    if (pair) {
+      pair.revelada = true
+      pair.combinada = true
+      card.combinada = true
+      gameStore.registerMatch()
+      gameStore.isLupaActive = false
+      resetTurn()
+    }
+  }
 }
 
 function checkMatch() {
@@ -175,12 +188,28 @@ watch(() => gameStore.gameStarted, (started) => {
     navigateTo('/')
   }
 })
+
+// Tecla ESC para desselecionar item
+const handleKeyDown = (e: KeyboardEvent) => {
+  if (e.key === 'Escape') {
+    gameStore.deselectItem()
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeyDown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeyDown)
+})
 </script>
 
 <template>
   <main
     class="flex flex-col md:flex-row items-center md:items-start md:justify-center min-h-screen pt-21 px-4 gap-2 overflow-hidden relative"
     :class="{ 'shake-animation': isShaking }"
+    @click="gameStore.deselectItem()"
   >
     <!-- Efeito de Dano (Overlay) -->
     <div
@@ -228,24 +257,19 @@ watch(() => gameStore.gameStarted, (started) => {
       />
     </section>
 
-    <!-- CARTAS DE ITEMS ARRUMAR DEPOIS -->
+    <!-- CARTAS DE ITEMS -->
     <div
       v-if="gameStore.activeUpgrades.some(u => u?.type === 'item')"
-      class="fixed bottom-0 left-2/5 -translate-x-1/2 flex gap-4 pointer-events-none translate-y-15 opacity-80"
+      class="fixed bottom-0 left-1/2 -translate-x-1/2 flex -space-x-8 sm:-space-x-10 items-end h-[180px] px-10 pb-4"
     >
-      <UTooltip
-        v-for="up in gameStore.activeUpgrades.filter(u => u?.type === 'item')"
+      <ItemCard
+        v-for="(up, i) in gameStore.activeUpgrades.filter(u => u?.type === 'item')"
         :key="up?.instanceId"
-        :text="up?.description"
-      >
-        <UIcon
-          :name="up?.icon"
-          class="text-xl transition-transform hover:scale-110 text-neutral-100"
-        />
-      </UTooltip>
-      <NuxtImg
-        src="cartaUpgrade.png"
-        class="w-[80px] h-[110px] sm:w-[100px] sm:h-[135px] rotate-3 -translate-y-4 shadow-2xl"
+        :item="up"
+        :index="i"
+        :selected="gameStore.selectedItemInstanceId === up.instanceId"
+        @click="gameStore.selectItem(up.instanceId)"
+        @activate="gameStore.activateItem(up.instanceId)"
       />
     </div>
 

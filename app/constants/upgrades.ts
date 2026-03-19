@@ -116,14 +116,6 @@ export const UPGRADES_POOL: Upgrade[] = [
 
   // Itens
   {
-    id: '🔍',
-    name: 'Lupa de Cristal',
-    icon: 'game-icons:magnifying-glass',
-    description: 'Revela o par de uma carta clicada',
-    floors: 1,
-    type: 'item'
-  },
-  {
     id: '🔑',
     name: 'Chave do andar',
     icon: 'game-icons:key-lock',
@@ -131,6 +123,15 @@ export const UPGRADES_POOL: Upgrade[] = [
     floors: 1,
     type: 'item'
   },
+  {
+    id: '🔍',
+    name: 'Lupa de Cristal',
+    icon: 'game-icons:magnifying-glass',
+    description: 'Revela o par de uma carta clicada',
+    floors: 1,
+    type: 'item'
+  },
+
   {
     id: '🧪',
     name: 'Poção da Loucura',

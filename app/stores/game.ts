@@ -19,6 +19,10 @@ export const useGameStore = defineStore('game', () => {
   const showTimePenaltyAnim = ref(false)
   const penaltyPos = ref({ x: 0, y: 0 })
 
+  // Itens e Ativações
+  const selectedItemInstanceId = ref<string | null>(null)
+  const isLupaActive = ref(false)
+
   const collectedUpgrades = ref<CollectedUpgrade[]>([])
   const isGameOver = ref(false)
   const pairsFoundInAndar = ref(0)
@@ -208,6 +212,58 @@ export const useGameStore = defineStore('game', () => {
     }
   }
 
+  function selectItem(instanceId: string) {
+    if (selectedItemInstanceId.value === instanceId) {
+      selectedItemInstanceId.value = null
+    } else {
+      selectedItemInstanceId.value = instanceId
+    }
+  }
+
+  function deselectItem() {
+    selectedItemInstanceId.value = null
+  }
+
+  function activateItem(instanceId: string) {
+    const item = activeUpgrades.value.find(up => up.instanceId === instanceId)
+    if (!item) return
+
+    // Lógica específica de cada item
+    switch (item.id) {
+      case '🔍': // Lupa de Cristal
+        isLupaActive.value = true
+        break
+      case '🔑': // Chave do andar
+        nextFloor(GOAL_INCREMENT_PER_FLOOR)
+        break
+      case '🧪': // Poção da Loucura
+        triggerMadnessEffect()
+        break
+    }
+
+    // Remover item após o uso
+    collectedUpgrades.value = collectedUpgrades.value.filter(up => up.instanceId !== instanceId)
+    selectedItemInstanceId.value = null
+  }
+
+  function triggerMadnessEffect() {
+    // Vira e desvira cartas aleatoriamente por 1 segundo
+    const interval = setInterval(() => {
+      const card = tabuleiro.value[Math.floor(Math.random() * tabuleiro.value.length)]
+      if (card && !card.combinada) {
+        card.revelada = !card.revelada
+      }
+    }, 100)
+
+    setTimeout(() => {
+      clearInterval(interval)
+      // Garantir que as cartas não combinadas voltem a ficar viradas para baixo
+      tabuleiro.value.forEach((card) => {
+        if (!card.combinada) card.revelada = false
+      })
+    }, 1500)
+  }
+
   function resetRun() {
     stopTimer()
     lives.value = INITIAL_LIVES
@@ -221,6 +277,8 @@ export const useGameStore = defineStore('game', () => {
     collectedUpgrades.value = []
     pairsFoundInAndar.value = 0
     gameStarted.value = false
+    selectedItemInstanceId.value = null
+    isLupaActive.value = false
   }
 
   function startNewGame() {
@@ -235,6 +293,8 @@ export const useGameStore = defineStore('game', () => {
     floor.value.goal += addToGoal
     pairsFoundInAndar.value = 0
     resetStreak()
+    selectedItemInstanceId.value = null
+    isLupaActive.value = false
 
     // Gerenciar duração dos upgrades
     collectedUpgrades.value = collectedUpgrades.value
@@ -297,6 +357,12 @@ export const useGameStore = defineStore('game', () => {
     showTimePenaltyAnim,
     penaltyPos,
     gameStarted,
-    startNewGame
+    startNewGame,
+    // Itens
+    selectedItemInstanceId,
+    selectItem,
+    deselectItem,
+    activateItem,
+    isLupaActive
   }
 })
