@@ -2,6 +2,7 @@
 import { useGameStore } from '@/stores/game'
 
 const gameStore = useGameStore()
+const toast = useToast()
 
 async function handleStartNew() {
   gameStore.startNewGame()
@@ -9,6 +10,15 @@ async function handleStartNew() {
 }
 
 const isHowToPlayOpen = ref(false)
+
+function showConstructionToast() {
+  toast.add({
+    title: 'Modo Battles',
+    description: 'Este modo está em construção e chegará em breve! ⚔️',
+    icon: 'i-lucide-construction',
+    color: 'warning'
+  })
+}
 </script>
 
 <template>
@@ -63,8 +73,19 @@ const isHowToPlayOpen = ref(false)
           color="neutral"
           variant="subtle"
           block
-          class="font-bold py-4 rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 transition-all"
+          class="font-bold py-4 rounded-xl transition-all"
           @click="isHowToPlayOpen = true"
+        />
+
+        <UButton
+          icon="game-icons:crossed-swords"
+          label="Modo Battles"
+          size="xl"
+          color="secondary"
+          variant="subtle"
+          block
+          class="font-bold py-4 rounded-xl transition-all"
+          @click="showConstructionToast()"
         />
       </div>
 

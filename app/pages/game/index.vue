@@ -273,16 +273,6 @@ onUnmounted(() => {
       />
     </div>
 
-    <!-- BOTÃO DE TESTE (DEBUG) -->
-    <div class="fixed top-4 left-4 z-50">
-      <UButton
-        icon="game-icons:test-tubes"
-        color="neutral"
-        variant="ghost"
-        @click="gameStore.triggerTestUpgrade()"
-      />
-    </div>
-
     <UModal
       :open="gameStore.opcoesUpgrade.length > 0 "
       prevent-close
