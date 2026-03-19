@@ -3,6 +3,7 @@ export const maxLives = 10
 export const maxBoardSize = 10
 export const INITIAL_LIVES = 3
 export const INITIAL_GOAL = 4
+export const MAX_ITEMS = 5
 
 // Progressão
 export const GOAL_INCREMENT_PER_FLOOR = 2

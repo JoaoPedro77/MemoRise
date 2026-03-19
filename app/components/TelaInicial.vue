@@ -7,6 +7,8 @@ async function handleStartNew() {
   gameStore.startNewGame()
   await navigateTo('/game')
 }
+
+const isHowToPlayOpen = ref(false)
 </script>
 
 <template>
@@ -30,6 +32,12 @@ async function handleStartNew() {
 
       <!-- Título e Subtítulo -->
       <div class="space-y-4">
+        <p
+          v-if="gameStore.bestFloor > 0"
+          class="text-primary-500 font-black text-xs uppercase tracking-widest animate-pulse"
+        >
+          Recorde: Andar {{ gameStore.bestFloor }}
+        </p>
         <p class="text-neutral-400 font-medium text-sm md:text-base leading-relaxed max-w-[280px] mx-auto">
           Suba os andares e colete relíquias em uma jornada testando sua memória.
         </p>
@@ -47,7 +55,107 @@ async function handleStartNew() {
           class="font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(var(--primary-500),0.3)] hover:shadow-[0_0_30px_rgba(var(--primary-500),0.5)] transition-all"
           @click="handleStartNew()"
         />
+
+        <UButton
+          icon="game-icons:bookmark"
+          label="Como Jogar"
+          size="xl"
+          color="neutral"
+          variant="subtle"
+          block
+          class="font-bold py-4 rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 transition-all"
+          @click="isHowToPlayOpen = true"
+        />
       </div>
+
+      <!-- Modal Como Jogar -->
+      <UModal v-model:open="isHowToPlayOpen">
+        <template #content>
+          <div class="p-4 space-y-5 max-h-[85vh] overflow-y-auto no-scrollbar">
+            <div class="text-center space-y-2">
+              <h2 class="text-3xl font-black italic text-primary-500 uppercase tracking-tighter">
+                Como Jogar
+              </h2>
+              <div class="h-1 w-12 bg-primary-500 mx-auto rounded-full" />
+            </div>
+
+            <div class="space-y-3 text-left">
+              <!-- Objetivo -->
+              <section class="flex gap-4 items-start bg-white/5 p-3 rounded-xl border border-white/5">
+                <UIcon
+                  name="game-icons:treasure-map"
+                  class="text-3xl text-primary-400 shrink-0"
+                />
+                <div>
+                  <h4 class="font-bold text-white uppercase text-xs tracking-widest mb-1">
+                    Objetivo
+                  </h4>
+                  <p class="text-sm text-neutral-400">
+                    Encontre os pares de cartas para limpar o tabuleiro. Cada andar concluído te leva mais alto na torre!
+                  </p>
+                </div>
+              </section>
+
+              <!-- Vida e Punições -->
+              <section class="flex gap-4 items-start bg-white/5 p-3 rounded-xl border border-white/5">
+                <UIcon
+                  name="game-icons:glass-heart"
+                  class="text-3xl text-rose-500 shrink-0"
+                />
+                <div>
+                  <h4 class="font-bold text-white uppercase text-xs tracking-widest mb-1">
+                    Vidas e Memória
+                  </h4>
+                  <p class="text-sm text-neutral-400">
+                    Você começa com 3 vidas. Errar um par que você já revelou antes custa uma vida. Fique atento!
+                  </p>
+                </div>
+              </section>
+
+              <!-- O Tempo -->
+              <section class="flex gap-4 items-start bg-white/5 p-3 rounded-xl border border-white/5">
+                <UIcon
+                  name="game-icons:sands-of-time"
+                  class="text-3xl text-amber-500 shrink-0"
+                />
+                <div>
+                  <h4 class="font-bold text-white uppercase text-xs tracking-widest mb-1">
+                    O Tempo Corre
+                  </h4>
+                  <p class="text-sm text-neutral-400">
+                    A partir do 2º andar, o tempo começa a esgotar. Se o relógio chegar a zero, sua jornada termina.
+                  </p>
+                </div>
+              </section>
+
+              <!-- Relíquias -->
+              <section class="flex gap-4 items-start bg-white/5 p-3 rounded-xl border border-white/5">
+                <UIcon
+                  name="game-icons:skills"
+                  class="text-3xl text-emerald-500 shrink-0"
+                />
+                <div>
+                  <h4 class="font-bold text-white uppercase text-xs tracking-widest mb-1">
+                    Itens e Upgrades
+                  </h4>
+                  <p class="text-sm text-neutral-400">
+                    Escolha sabiamente a cada 2 andares. Você pode carregar até 5 itens. Use-os clicando duas vezes ou arrastando a carta para cima.
+                  </p>
+                </div>
+              </section>
+            </div>
+
+            <UButton
+              label="Entendido!"
+              color="primary"
+              size="xl"
+              block
+              class="font-bold rounded-xl"
+              @click="isHowToPlayOpen = false"
+            />
+          </div>
+        </template>
+      </UModal>
 
       <!-- Footer / Versão -->
       <div class="pt-8 opacity-30 flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase text-neutral-500">

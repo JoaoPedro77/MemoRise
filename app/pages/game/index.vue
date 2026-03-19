@@ -260,7 +260,7 @@ onUnmounted(() => {
     <!-- CARTAS DE ITEMS -->
     <div
       v-if="gameStore.activeUpgrades.some(u => u?.type === 'item')"
-      class="fixed bottom-0 left-1/2 -translate-x-1/2 flex -space-x-8 sm:-space-x-10 items-end h-[180px] px-10 pb-4"
+      class="fixed -bottom-8 left-1/2 -translate-x-1/2 flex -space-x-8 sm:-space-x-10 items-end h-[200px] px-10 pb-0 pointer-events-none"
     >
       <ItemCard
         v-for="(up, i) in gameStore.activeUpgrades.filter(u => u?.type === 'item')"
@@ -338,6 +338,12 @@ onUnmounted(() => {
 
           <p class="text-gray-400">
             Sua jornada terminou no andar {{ gameStore.floor.number }}.
+            <span
+              v-if="gameStore.bestFloor > 0"
+              class="block mt-2 text-xs font-bold text-primary-500 uppercase tracking-widest"
+            >
+              Seu Recorde: Andar {{ gameStore.bestFloor }}
+            </span>
           </p>
 
           <UButton
@@ -347,7 +353,7 @@ onUnmounted(() => {
             variant="solid"
             size="xl"
             block
-            @click="gameStore.resetRun(); gameStore.iniciarTabuleiro()"
+            @click="gameStore.startNewGame()"
           />
         </div>
       </template>

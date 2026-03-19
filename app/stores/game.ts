@@ -3,7 +3,7 @@ import { UPGRADES_POOL, type Upgrade, type CollectedUpgrade } from '~/constants/
 import { applyUpgradeEffect, getFloorTime } from '~/utils/upgrade-effects'
 import { gerarListaCartasMemoria } from '~/utils/game-logic'
 import { bancoEmojis } from '~/utils/banco-emojis'
-import { maxBoardSize, maxLives, INITIAL_LIVES, INITIAL_GOAL, GOAL_INCREMENT_PER_FLOOR } from '~/constants/constantes'
+import { maxBoardSize, maxLives, INITIAL_LIVES, INITIAL_GOAL, GOAL_INCREMENT_PER_FLOOR, MAX_ITEMS } from '~/constants/constantes'
 
 export const useGameStore = defineStore('game', () => {
   const tabuleiro = ref<Card[]>([])
@@ -12,6 +12,7 @@ export const useGameStore = defineStore('game', () => {
   const lives = ref(INITIAL_LIVES)
   const floor = ref({ number: 1, goal: INITIAL_GOAL, time: -1 })
   const { start: startTimer, stop: stopTimer, timeRemaining } = useTimer()
+  const bestFloor = ref(0)
   const comboStreak = ref(0)
   const floorGoalModifier = ref(0)
   const showEyeAnimation = ref(false)
@@ -23,6 +24,22 @@ export const useGameStore = defineStore('game', () => {
   const selectedItemInstanceId = ref<string | null>(null)
   const isLupaActive = ref(false)
   const toast = useToast()
+
+  onMounted(() => {
+    if (import.meta.client) {
+      const saved = localStorage.getItem('memorise-best-floor')
+      if (saved) bestFloor.value = parseInt(saved)
+    }
+  })
+
+  function updateBestFloor() {
+    if (floor.value.number > bestFloor.value) {
+      bestFloor.value = floor.value.number
+      if (import.meta.client) {
+        localStorage.setItem('memorise-best-floor', bestFloor.value.toString())
+      }
+    }
+  }
 
   const isTurnInProgress = computed(() => {
     return tabuleiro.value.some(card => card.revelada && !card.combinada)
@@ -52,6 +69,13 @@ export const useGameStore = defineStore('game', () => {
   })
 
   function selecionarUpgrade(upgrade: Upgrade) {
+    if (upgrade.type === 'item') {
+      const currentItems = activeUpgrades.value.filter(up => up.type === 'item').length
+      if (currentItems >= MAX_ITEMS) {
+        showToast(`Você já tem ${MAX_ITEMS} itens e esse é o máximo!`)
+        return
+      }
+    }
     addUpgrade(upgrade.id)
     opcoesUpgrade.value = []
     iniciarTabuleiro()
@@ -217,10 +241,10 @@ export const useGameStore = defineStore('game', () => {
     }
   }
 
-  function showToast(message: string) {
+  function showToast(message: string, title: string = 'Ação Bloqueada') {
     toast.add({
       id: 'toast',
-      title: 'Ação Bloqueada',
+      title,
       description: message,
       icon: 'i-lucide-triangle-alert',
       color: 'error',
@@ -311,6 +335,7 @@ export const useGameStore = defineStore('game', () => {
   function nextFloor(addToGoal: number) {
     const floorJustFinished = floor.value.number
     floor.value.number++
+    updateBestFloor()
     floor.value.goal += addToGoal
     pairsFoundInAndar.value = 0
     resetStreak()
@@ -354,6 +379,7 @@ export const useGameStore = defineStore('game', () => {
     opcoesUpgrade,
     selecionarUpgrade,
     pularUpgrade,
+    bestFloor,
     lives,
     floor,
     collectedUpgrades,

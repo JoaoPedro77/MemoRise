@@ -95,7 +95,7 @@ const isReadyToActivate = computed(() => {
 <template>
   <div
     ref="alvo"
-    class="relative w-[80px] h-[110px] sm:w-[100px] sm:h-[135px] cursor-pointer transition-all duration-300 ease-out z-10"
+    class="relative w-[90px] h-[125px] sm:w-[110px] sm:h-[150px] cursor-pointer transition-all duration-300 ease-out z-10 pointer-events-auto"
     :class="{
       'z-50': selected,
       'duration-0': isDragging
@@ -116,8 +116,7 @@ const isReadyToActivate = computed(() => {
         class="w-full h-full object-contain drop-shadow-xl transition-all"
         :class="{
           'brightness-125 saturate-110': selected || isDragging,
-          'brightness-150 saturate-150': isReadyToActivate,
-          'saturate-[0.4]': gameStore.isTurnInProgress && !selected
+          'brightness-150 saturate-150': isReadyToActivate
         }"
       />
 
