@@ -15,16 +15,16 @@ useHead({
   }
 })
 
-const title = 'Jogo da Memória'
-const description = 'Jogo da Memória'
+const title = 'MemoRise'
+const description = 'Suba de andar em andar e colete relíquias em uma jornada testando sua memória!'
 
 useSeoMeta({
   title,
   description,
   ogTitle: title,
   ogDescription: description,
-  ogImage: '/favicon.ico',
-  twitterImage: '/favicon.ico',
+  ogImage: 'https://memo-rise.fun/favicon.ico',
+  twitterImage: 'https://memo-rise.fun/favicon.ico',
   twitterCard: 'summary_large_image'
 })
 </script>
