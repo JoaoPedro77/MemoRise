@@ -1,150 +1,25 @@
 <script setup lang="ts">
 import { useGameStore } from '@/stores/game'
-import type { Card } from '~/utils/game-logic'
+import { useUpgradeStore } from '@/stores/upgrade'
 import {
-  DELAY_CHECK_MATCH,
-  DELAY_FLIP_BACK,
   DURATION_DAMAGE_EFFECT,
   DURATION_SHAKE_EFFECT,
   GOAL_INCREMENT_PER_FLOOR
 } from '~/constants/constantes'
 
 const gameStore = useGameStore()
+const upgradeStore = useUpgradeStore()
+const { selectCard, tabuleiroLimpo, ganhouFase } = useCardGame()
 
-// Se o jogo não estiver começado (ex: reload da página), inicia uma nova partida automaticamente
 onMounted(() => {
   if (!gameStore.gameStarted) {
     gameStore.startNewGame()
   }
 })
 
-const firstCard = ref<Card | null>(null)
-const secondCard = ref<Card | null>(null)
-const lockBoard = ref(false)
-const lastClickPos = ref({ x: 0, y: 0 })
-
-function selectCard(card: Card, event?: MouseEvent) {
-  // Ignora se já estiver virada, combinada ou se o tabuleiro estiver travado
-  if (card.revelada || card.combinada || lockBoard.value) return
-
-  if (event) {
-    lastClickPos.value = { x: event.clientX, y: event.clientY }
-  }
-
-  card.revelada = true
-
-  if (!firstCard.value) {
-    // Escolheu a primeira
-    firstCard.value = card
-  } else {
-    // Escolheu a segunda
-    secondCard.value = card
-    lockBoard.value = true
-
-    // Pequena pausa para o jogador ver a carta antes de validar
-    setTimeout(() => {
-      checkMatch()
-    }, DELAY_CHECK_MATCH)
-  }
-
-  // Lógica da Lupa de Cristal
-  if (gameStore.isLupaActive) {
-    const pair = gameStore.tabuleiro.find(c => c.valor === card.valor && c.id !== card.id)
-    if (pair) {
-      pair.revelada = true
-      pair.combinada = true
-      card.combinada = true
-      gameStore.registerMatch()
-      gameStore.isLupaActive = false
-      resetTurn()
-    }
-  }
-}
-
-function checkMatch() {
-  const isMatch = firstCard.value?.valor === secondCard.value?.valor
-
-  if (isMatch) {
-    handleSuccess()
-  } else {
-    handleFailure()
-  }
-  if (secondCard.value) secondCard.value.jaViu = true
-  if (firstCard.value) firstCard.value.jaViu = true
-}
-
-function handleSuccess() {
-  if (firstCard.value) firstCard.value.combinada = true
-  if (secondCard.value) secondCard.value.combinada = true
-  gameStore.registerMatch()
-
-  resetTurn()
-
-  // TODO: Adicionar lógica de pontuação aqui se desejar
-}
-
-function handleFailure() {
-  gameStore.resetStreak()
-  const hasContract = gameStore.activeUpgrades.some(u => u.id === '📄')
-  const hasPocketWatch = gameStore.activeUpgrades.some(u => u.id === '⌚')
-
-  let loseLife = false
-  let penaltyTime = false
-
-  if (firstCard.value?.jaViu) {
-    if (hasContract && !firstCard.value.usouSegundaChance) {
-      firstCard.value.usouSegundaChance = true
-    } else if (hasPocketWatch) {
-      penaltyTime = true
-    } else {
-      loseLife = true
-    }
-  }
-
-  if (secondCard.value?.jaViu) {
-    if (hasContract && !secondCard.value.usouSegundaChance) {
-      secondCard.value.usouSegundaChance = true
-    } else if (hasPocketWatch) {
-      penaltyTime = true
-    } else {
-      loseLife = true
-    }
-  }
-
-  if (penaltyTime && !loseLife) {
-    gameStore.subtractTime(30, lastClickPos.value.x, lastClickPos.value.y)
-  } else if (loseLife) {
-    gameStore.loseLife()
-  }
-
-  // Vira de volta após um tempo
-  setTimeout(() => {
-    if (firstCard.value) firstCard.value.revelada = false
-    if (secondCard.value) secondCard.value.revelada = false
-    resetTurn()
-  }, DELAY_FLIP_BACK)
-}
-
-function resetTurn() {
-  firstCard.value = null
-  secondCard.value = null
-  lockBoard.value = false
-}
-
-const tabuleiroLimpo = computed(() => {
-  return gameStore.tabuleiro.every(card => card.combinada)
-})
-
-const ganhouFase = computed(() => {
-  return gameStore.pairsFoundInAndar >= gameStore.currentGoal
-})
-
 watch(tabuleiroLimpo, (limpo) => {
   if (limpo && !ganhouFase.value) {
-    // REEMBALHAR!
-    // Gera novas 12 cartas para o jogador continuar pontuando no mesmo andar
     gameStore.iniciarTabuleiro()
-    //////////////////////////////////////////////////////////////////
     console.log('Nova leva de cartas! Continue!')
   }
 })
@@ -163,7 +38,6 @@ const gridColsClass = computed(() => {
   }
 })
 
-// Efeito de Dano e Tremor (Shake)
 const showDamageEffect = ref(false)
 const isShaking = ref(false)
 
@@ -182,17 +56,15 @@ watch(() => gameStore.lives, (newLives, oldLives) => {
   }
 })
 
-// Se o estado de jogo mudar para falso (ex: reset total), volta pro menu
 watch(() => gameStore.gameStarted, (started) => {
   if (!started) {
     navigateTo('/')
   }
 })
 
-// Tecla ESC para desselecionar item
 const handleKeyDown = (e: KeyboardEvent) => {
   if (e.key === 'Escape') {
-    gameStore.deselectItem()
+    upgradeStore.deselectItem()
   }
 }
 
@@ -209,20 +81,18 @@ onUnmounted(() => {
   <main
     class="flex flex-col md:flex-row items-center md:items-start md:justify-center min-h-screen pt-21 px-4 gap-2 overflow-hidden relative"
     :class="{ 'shake-animation': isShaking }"
-    @click="gameStore.deselectItem()"
+    @click="upgradeStore.deselectItem()"
   >
-    <!-- Efeito de Dano (Overlay) -->
     <div
       class="fixed inset-0 z-50 pointer-events-none transition-opacity duration-300 bg-error-500/30"
       :class="showDamageEffect ? 'opacity-100' : 'opacity-0'"
     />
-    <!-- BARRA LATERAL (Upgrades) -->
     <aside
-      v-if="gameStore.activeUpgrades.some(u => u?.type !== 'item')"
+      v-if="upgradeStore.activeUpgrades.some(u => u?.type !== 'item')"
       class="flex flex-row md:flex-col items-center justify-start md:justify-center gap-3 p-3 bg-neutral-800/50 rounded-xl backdrop-blur-sm md:sticky md:top-25 overflow-x-auto max-w-full no-scrollbar"
     >
       <UTooltip
-        v-for="up in gameStore.activeUpgrades.filter(u => u?.type !== 'item')"
+        v-for="up in upgradeStore.activeUpgrades.filter(u => u?.type !== 'item')"
         :key="up?.instanceId"
         :text="up?.description"
       >
@@ -242,7 +112,6 @@ onUnmounted(() => {
       </UTooltip>
     </aside>
 
-    <!-- ÁREA DO JOGO -->
     <section
       class="grid gap-2 md:gap-3 max-w-7xl justify-items-center md:grid-cols-[repeat(var(--cols-pc),minmax(0,1fr))]"
       :class="gridColsClass.class"
@@ -257,24 +126,23 @@ onUnmounted(() => {
       />
     </section>
 
-    <!-- CARTAS DE ITEMS -->
     <div
-      v-if="gameStore.activeUpgrades.some(u => u?.type === 'item')"
+      v-if="upgradeStore.activeUpgrades.some(u => u?.type === 'item')"
       class="fixed -bottom-8 left-1/2 -translate-x-1/2 flex -space-x-8 sm:-space-x-10 items-end h-[200px] px-10 pb-0 pointer-events-none"
     >
       <ItemCard
-        v-for="(up, i) in gameStore.activeUpgrades.filter(u => u?.type === 'item')"
+        v-for="(up, i) in upgradeStore.activeUpgrades.filter(u => u?.type === 'item')"
         :key="up?.instanceId"
         :item="up"
         :index="i"
-        :selected="gameStore.selectedItemInstanceId === up.instanceId"
-        @click="gameStore.selectItem(up.instanceId)"
-        @activate="gameStore.activateItem(up.instanceId)"
+        :selected="upgradeStore.selectedItemInstanceId === up.instanceId"
+        @click="upgradeStore.selectItem(up.instanceId)"
+        @activate="upgradeStore.activateItem(up.instanceId)"
       />
     </div>
 
     <UModal
-      :open="gameStore.opcoesUpgrade.length > 0 "
+      :open="upgradeStore.opcoesUpgrade.length > 0 "
       prevent-close
       size="w-3xl"
     >
@@ -292,11 +160,11 @@ onUnmounted(() => {
 
           <div class="flex flex-wrap justify-center gap-0 sm:gap-2 w-full">
             <CartaUpgrade
-              v-for="(up, i) in gameStore.opcoesUpgrade"
+              v-for="(up, i) in upgradeStore.opcoesUpgrade"
               :key="up?.id"
               :upgrade="up"
               :index="i"
-              @click="gameStore.selecionarUpgrade(up)"
+              @click="upgradeStore.selecionarUpgrade(up)"
             />
           </div>
 
@@ -308,7 +176,7 @@ onUnmounted(() => {
               variant="solid"
               size="lg"
               class="font-bold w-full justify-center mb-2"
-              @click="gameStore.pularUpgrade()"
+              @click="upgradeStore.pularUpgrade()"
             />
           </div>
         </div>

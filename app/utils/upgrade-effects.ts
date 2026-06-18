@@ -1,13 +1,5 @@
 import { TIMER_BASE_SECONDS, TIMER_DECREASE_INTERVAL, TIMER_DECREASE_AMOUNT, TIMER_MIN_SECONDS, TIMER_BONUS_HOURGLASS, TIMER_START_FLOOR } from '~/constants/constantes'
 
-export const applyUpgradeEffect = (upgradeId: string, state: { lives: Ref<number>, floor: Ref<{ number: number, goal: number }> }) => {
-  switch (upgradeId) {
-    case '❤️':
-      state.lives.value++
-      break
-  }
-}
-
 export const getFloorTime = (floorNumber: number, collectedUpgrades: { id: string }[]) => {
   if (floorNumber < TIMER_START_FLOOR) return -1
 
@@ -15,10 +7,38 @@ export const getFloorTime = (floorNumber: number, collectedUpgrades: { id: strin
   const deduction = Math.floor((floorNumber - TIMER_START_FLOOR) / TIMER_DECREASE_INTERVAL) * TIMER_DECREASE_AMOUNT
   let floorTime = Math.max(TIMER_MIN_SECONDS, baseTime - deduction)
 
-  // Se tiver a Ampulheta ativa, adiciona bônus
   if (collectedUpgrades.some(cu => cu.id === '⌛')) {
     floorTime += TIMER_BONUS_HOURGLASS
   }
 
   return floorTime
+}
+
+export function processFloorStartEffects(
+  activeIds: Set<string>,
+  floorGoalModifier: { value: number },
+  loseLife: () => void
+) {
+  if (activeIds.has('🎲') && Math.random() < 0.02) {
+    floorGoalModifier.value++
+  }
+
+  if (activeIds.has('🪦')) {
+    if (Math.random() < 0.30) floorGoalModifier.value++
+    if (Math.random() < 0.10) loseLife()
+  }
+
+  if (activeIds.has('💀')) {
+    if (Math.random() < 0.30) floorGoalModifier.value += 4
+    if (Math.random() < 0.50) loseLife()
+  }
+}
+
+export function getPeekDuration(cardsLength: number): number {
+  const totalAppearTime = (cardsLength - 1) * 100 + 500
+  return totalAppearTime + 500
+}
+
+export function shouldRestoreLife(comboStreak: number, activeIds: Set<string>): boolean {
+  return comboStreak === 3 && activeIds.has('💪')
 }

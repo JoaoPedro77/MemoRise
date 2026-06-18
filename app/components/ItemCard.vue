@@ -24,7 +24,15 @@ const dragOffset = computed(() => {
 
 const handlePointerDown = (e: PointerEvent) => {
   if (gameStore.isTurnInProgress && !props.selected) {
-    gameStore.showToast('Termine sua jogada antes de usar um item!')
+    const toast = useToast()
+    toast.add({
+      id: 'toast',
+      title: 'Ação Bloqueada',
+      description: 'Termine sua jogada antes de usar um item!',
+      icon: 'i-lucide-triangle-alert',
+      color: 'error',
+      duration: 3000
+    })
     return
   }
   isDragging.value = true
