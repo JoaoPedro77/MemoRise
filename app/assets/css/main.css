@@ -2,7 +2,7 @@
 @import "@nuxt/ui";
 
 @theme static {
-  --font-emoji: 'Noto Color Emoji', sans-serif;
+  --font-emoji: 'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
   --font-sans: 'Jersey 10', sans-serif;
   --font-fredoka: 'Fredoka', sans-serif;
   --font-emoji2: 'Noto Emoji', sans-serif;
