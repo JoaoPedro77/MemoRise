@@ -1,15 +1,24 @@
 <script setup lang="ts">
 import { useGameStore } from '@/stores/game'
 import { useUpgradeStore } from '@/stores/upgrade'
+import { useMapStore } from '@/stores/map'
+import { NodeType } from '~/utils/map-generator'
+import { UPGRADES_POOL, type Upgrade } from '~/constants/upgrades'
 import {
   DURATION_DAMAGE_EFFECT,
-  DURATION_SHAKE_EFFECT,
-  GOAL_INCREMENT_PER_FLOOR
+  DURATION_SHAKE_EFFECT
 } from '~/constants/constantes'
 
 const gameStore = useGameStore()
 const upgradeStore = useUpgradeStore()
+const mapStore = useMapStore()
 const { selectCard, tabuleiroLimpo, ganhouFase } = useCardGame()
+
+const gamePhase = ref<'map' | 'combat'>('map')
+const showTowerComplete = ref(false)
+const showRestDialog = ref(false)
+const showCurseDialog = ref(false)
+const appliedCurse = ref<Upgrade | null>(null)
 
 onMounted(() => {
   if (!gameStore.gameStarted) {
@@ -62,6 +71,109 @@ watch(() => gameStore.gameStarted, (started) => {
   }
 })
 
+function startCombat(nodeId: string) {
+  const node = mapStore.getNode(nodeId)
+  if (!node) return
+
+  if (!node.pairCount) {
+    applyNonCombatNode(node)
+    return
+  }
+
+  gameStore.startCombatFromNode(node.pairCount, nodeId)
+  gamePhase.value = 'combat'
+}
+
+function applyNonCombatNode(node: { id: string, type: NodeType }) {
+  switch (node.type) {
+    case NodeType.REST:
+      gameStore.addLife()
+      showRestDialog.value = true
+      break
+    case NodeType.ARTIFACT:
+      upgradeStore.gerarOpcoesUpgrade()
+      break
+    case NodeType.CURSE:
+      applyRandomCurse()
+      showCurseDialog.value = true
+      break
+    case NodeType.TREASURE:
+      upgradeStore.gerarOpcoesUpgrade()
+      break
+  }
+}
+
+function closeRestDialog() {
+  showRestDialog.value = false
+  mapStore.completeCurrentNode()
+  checkTowerAdvance()
+}
+
+function closeCurseDialog() {
+  showCurseDialog.value = false
+  mapStore.completeCurrentNode()
+  checkTowerAdvance()
+}
+
+function handleNodeCompletion() {
+  const node = mapStore.currentNode
+  if (!node) return
+
+  gameStore.resetCombatSession()
+
+  if (
+    node.type === NodeType.COMBAT_SMALL
+    || node.type === NodeType.COMBAT_MEDIUM
+    || node.type === NodeType.COMBAT_BOSS
+  ) {
+    upgradeStore.decrementUpgradeDurations()
+  }
+
+  switch (node.type) {
+    case NodeType.ARTIFACT: {
+      upgradeStore.gerarOpcoesUpgrade()
+      break
+    }
+    case NodeType.TREASURE: {
+      upgradeStore.gerarOpcoesUpgrade()
+      break
+    }
+    default: {
+      mapStore.completeCurrentNode()
+      gamePhase.value = 'map'
+      checkTowerAdvance()
+    }
+  }
+}
+
+function checkTowerAdvance() {
+  if (mapStore.isBossDefeated) {
+    showTowerComplete.value = true
+  }
+}
+
+function advanceTower() {
+  showTowerComplete.value = false
+  mapStore.startNextTower()
+  gamePhase.value = 'map'
+}
+
+function applyRandomCurse() {
+  const curseIds = ['🪦', '💀', '📄']
+  const id = curseIds[Math.floor(Math.random() * curseIds.length)]
+  if (!id) return
+  upgradeStore.addUpgrade(id)
+  appliedCurse.value = UPGRADES_POOL.find(u => u.id === id) ?? null
+}
+
+watch(() => upgradeStore.opcoesUpgrade.length, (newLen, oldLen) => {
+  if (oldLen > 0 && newLen === 0) {
+    mapStore.completeCurrentNode()
+    gamePhase.value = 'map'
+    checkTowerAdvance()
+  }
+})
+
 const handleKeyDown = (e: KeyboardEvent) => {
   if (e.key === 'Escape') {
     upgradeStore.deselectItem()
@@ -79,7 +191,7 @@ onUnmounted(() => {
 
 <template>
   <main
-    class="flex flex-col md:flex-row items-center md:items-start md:justify-center min-h-screen pt-21 px-4 gap-2 overflow-hidden relative"
+    class="flex flex-col items-center min-h-screen pt-21 px-4 gap-2 overflow-y-auto relative"
     :class="{ 'shake-animation': isShaking }"
     @click="upgradeStore.deselectItem()"
   >
@@ -87,62 +199,137 @@ onUnmounted(() => {
       class="fixed inset-0 z-50 pointer-events-none transition-opacity duration-300 bg-error-500/30"
       :class="showDamageEffect ? 'opacity-100' : 'opacity-0'"
     />
-    <aside
-      v-if="upgradeStore.activeUpgrades.some(u => u?.type !== 'item')"
-      class="flex flex-row md:flex-col items-center justify-start md:justify-center gap-3 p-3 bg-neutral-800/50 rounded-xl backdrop-blur-sm md:sticky md:top-25 overflow-x-auto max-w-full no-scrollbar"
-    >
-      <UTooltip
-        v-for="up in upgradeStore.activeUpgrades.filter(u => u?.type !== 'item')"
-        :key="up?.instanceId"
-        :text="up?.description"
+
+    <template v-if="gamePhase === 'map'">
+      <MapView @start-combat="startCombat" />
+    </template>
+
+    <template v-if="gamePhase === 'combat'">
+      <aside
+        v-if="upgradeStore.activeUpgrades.some(u => u?.type !== 'item')"
+        class="flex flex-row md:flex-col items-center justify-start md:justify-center gap-3 p-3 bg-neutral-800/50 rounded-xl backdrop-blur-sm md:absolute md:left-4 md:top-25 overflow-x-auto max-w-full no-scrollbar"
       >
-        <div class="relative group">
-          <UIcon
-            :name="up?.icon"
-            class="text-xl transition-transform hover:scale-110"
-            :class="up?.type === 'curse' ? 'text-error-500' : 'text-secondary-400'"
-          />
-          <span
-            v-if="up?.floorsLeft > 0"
-            class="absolute font-fredoka -top-1 -right-1 flex items-center justify-center bg-neutral-900 border border-white/10 text-[8px] w-3.5 h-3.5 rounded-full text-white"
-          >
-            {{ up.floorsLeft }}
-          </span>
-        </div>
-      </UTooltip>
-    </aside>
+        <UTooltip
+          v-for="up in upgradeStore.activeUpgrades.filter(u => u?.type !== 'item')"
+          :key="up?.instanceId"
+          :text="up?.description"
+        >
+          <div class="relative group">
+            <UIcon
+              :name="up?.icon"
+              class="text-xl transition-transform hover:scale-110"
+              :class="up?.type === 'curse' ? 'text-error-500' : 'text-secondary-400'"
+            />
+            <span
+              v-if="up?.floorsLeft > 0"
+              class="absolute font-fredoka -top-1 -right-1 flex items-center justify-center bg-neutral-900 border border-white/10 text-[8px] w-3.5 h-3.5 rounded-full text-white"
+            >
+              {{ up.floorsLeft }}
+            </span>
+          </div>
+        </UTooltip>
+      </aside>
 
-    <section
-      class="grid gap-2 md:gap-3 max-w-7xl justify-items-center md:grid-cols-[repeat(var(--cols-pc),minmax(0,1fr))]"
-      :class="gridColsClass.class"
-      :style="{ '--cols-pc': gridColsClass.colsPC }"
-    >
-      <CartasJogo
-        v-for="(card, j) in gameStore.tabuleiro"
-        :key="card.id"
-        :card="card"
-        :index="j"
-        @click="selectCard(card, $event)"
-      />
-    </section>
+      <section
+        class="grid gap-2 md:gap-3 max-w-7xl justify-items-center md:grid-cols-[repeat(var(--cols-pc),minmax(0,1fr))]"
+        :class="gridColsClass.class"
+        :style="{ '--cols-pc': gridColsClass.colsPC }"
+      >
+        <CartasJogo
+          v-for="(card, j) in gameStore.tabuleiro"
+          :key="card.id"
+          :card="card"
+          :index="j"
+          @click="selectCard(card, $event)"
+        />
+      </section>
 
-    <div
-      v-if="upgradeStore.activeUpgrades.some(u => u?.type === 'item')"
-      class="fixed -bottom-8 left-1/2 -translate-x-1/2 flex -space-x-8 sm:-space-x-10 items-end h-[200px] px-10 pb-0 pointer-events-none"
-    >
-      <ItemCard
-        v-for="(up, i) in upgradeStore.activeUpgrades.filter(u => u?.type === 'item')"
-        :key="up?.instanceId"
-        :item="up"
-        :index="i"
-        :selected="upgradeStore.selectedItemInstanceId === up.instanceId"
-        @click="upgradeStore.selectItem(up.instanceId)"
-        @activate="upgradeStore.activateItem(up.instanceId)"
-      />
-    </div>
+      <div
+        v-if="upgradeStore.activeUpgrades.some(u => u?.type === 'item')"
+        class="fixed -bottom-8 left-1/2 -translate-x-1/2 flex -space-x-8 sm:-space-x-10 items-end h-[200px] px-10 pb-0 pointer-events-none"
+      >
+        <ItemCard
+          v-for="(up, i) in upgradeStore.activeUpgrades.filter(u => u?.type === 'item')"
+          :key="up?.instanceId"
+          :item="up"
+          :index="i"
+          :selected="upgradeStore.selectedItemInstanceId === up.instanceId"
+          @click="upgradeStore.selectItem(up.instanceId)"
+          @activate="upgradeStore.activateItem(up.instanceId)"
+        />
+      </div>
+    </template>
 
     <UModal
-      :open="upgradeStore.opcoesUpgrade.length > 0 "
+      :open="showRestDialog"
+      prevent-close
+    >
+      <template #content>
+        <div class="p-8 text-center flex flex-col items-center gap-6">
+          <div class="space-y-2">
+            <UIcon
+              name="game-icons:campfire"
+              class="text-5xl text-primary-400"
+            />
+            <h2 class="text-2xl font-black text-white">
+              Descanso
+            </h2>
+            <p class="text-neutral-400">
+              Você descansou ao redor da fogueira e recuperou suas energias.
+            </p>
+            <p class="text-lg font-bold text-green-400">
+              ❤️ +1 Vida ({{ gameStore.lives }})
+            </p>
+          </div>
+
+          <UButton
+            label="Continuar"
+            color="primary"
+            variant="solid"
+            size="lg"
+            block
+            @click="closeRestDialog"
+          />
+        </div>
+      </template>
+    </UModal>
+
+    <UModal
+      :open="showCurseDialog"
+      prevent-close
+    >
+      <template #content>
+        <div class="p-8 text-center flex flex-col items-center gap-6">
+          <div class="space-y-2">
+            <h2 class="text-2xl font-black text-white">
+              Maldição!
+            </h2>
+            <p class="text-neutral-400">
+              Você foi amaldiçoado por forças sombrias...
+            </p>
+          </div>
+
+          <div v-if="appliedCurse">
+            <CartaUpgrade
+              :upgrade="appliedCurse"
+              :index="0"
+            />
+          </div>
+
+          <UButton
+            label="Entendi"
+            color="secondary"
+            variant="solid"
+            size="lg"
+            block
+            @click="closeCurseDialog"
+          />
+        </div>
+      </template>
+    </UModal>
+
+    <UModal
+      :open="upgradeStore.opcoesUpgrade.length > 0"
       prevent-close
       size="w-3xl"
     >
@@ -195,7 +382,7 @@ onUnmounted(() => {
           </h2>
 
           <p class="text-gray-400">
-            Sua jornada terminou no andar {{ gameStore.floor.number }}.
+            Sua jornada terminou na Torre {{ mapStore.towerNumber }}.
             <span
               v-if="gameStore.bestFloor > 0"
               class="block mt-2 text-xs font-bold text-primary-500 uppercase tracking-widest"
@@ -225,25 +412,60 @@ onUnmounted(() => {
         <div class="p-8 text-center flex flex-col items-center gap-6">
           <div class="space-y-1">
             <p class="text-sm uppercase tracking-widest text-primary-400 font-bold">
-              Andar {{ gameStore.floor.number }}
+              Torre {{ mapStore.towerNumber }}
             </p>
             <h2 class="text-4xl flex items-center justify-center gap-2 text-white font-black">
               <UIcon
                 name="game-icons:stone-tower"
                 class="text-primary-500"
               />
-              CONCLUÍDO!
+              NÓ CONCLUÍDO!
             </h2>
           </div>
 
           <UButton
             icon="game-icons:3d-stairs"
-            label="Subir para o Próximo Andar"
+            label="Continuar Jornada"
             color="primary"
             variant="solid"
             size="xl"
             block
-            @click="gameStore.nextFloor(GOAL_INCREMENT_PER_FLOOR)"
+            @click="handleNodeCompletion"
+          />
+        </div>
+      </template>
+    </UModal>
+
+    <UModal
+      :open="showTowerComplete"
+      prevent-close
+    >
+      <template #content>
+        <div class="p-8 text-center flex flex-col items-center gap-6">
+          <div class="space-y-1">
+            <p class="text-sm uppercase tracking-widest text-primary-400 font-bold">
+              Torre {{ mapStore.towerNumber }} Concluída!
+            </p>
+            <h2 class="text-4xl flex items-center justify-center gap-2 text-white font-black">
+              <UIcon
+                name="game-icons:stone-tower"
+                class="text-primary-500"
+              />
+              TORRE CONQUISTADA!
+            </h2>
+            <p class="text-neutral-400 text-sm">
+              Você derrotou o chefe! Prepare-se para a Torre {{ mapStore.towerNumber + 1 }}.
+            </p>
+          </div>
+
+          <UButton
+            icon="game-icons:3d-stairs"
+            label="Próxima Torre"
+            color="primary"
+            variant="solid"
+            size="xl"
+            block
+            @click="advanceTower"
           />
         </div>
       </template>

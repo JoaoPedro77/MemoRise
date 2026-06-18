@@ -71,12 +71,10 @@ export const useUpgradeStore = defineStore('upgrade', () => {
     }
     addUpgrade(upgrade.id)
     opcoesUpgrade.value = []
-    useGameStore().iniciarTabuleiro()
   }
 
   function pularUpgrade() {
     opcoesUpgrade.value = []
-    useGameStore().iniciarTabuleiro()
   }
 
   function selectItem(instanceId: string) {

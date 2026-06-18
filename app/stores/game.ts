@@ -2,7 +2,8 @@ import { defineStore } from 'pinia'
 import { getFloorTime, processFloorStartEffects, getPeekDuration } from '~/utils/upgrade-effects'
 import { gerarListaCartasMemoria } from '~/utils/game-logic'
 import { bancoEmojis } from '~/utils/banco-emojis'
-import { maxBoardSize, maxLives, INITIAL_LIVES, INITIAL_GOAL, GOAL_INCREMENT_PER_FLOOR } from '~/constants/constantes'
+import { maxBoardSize, maxLives, INITIAL_LIVES, INITIAL_GOAL, GOAL_INCREMENT_PER_FLOOR, TIMER_BASE_SECONDS } from '~/constants/constantes'
+import { NodeType } from '~/utils/map-generator'
 
 export const useGameStore = defineStore('game', () => {
   const tabuleiro = ref<Card[]>([])
@@ -20,6 +21,10 @@ export const useGameStore = defineStore('game', () => {
   const penaltyPos = ref({ x: 0, y: 0 })
   const isGameOver = ref(false)
   const pairsFoundInAndar = ref(0)
+
+  // Map-driven combat state
+  const sessionPairCount = ref(0)
+  const currentCombatNodeId = ref<string | null>(null)
 
   onMounted(() => {
     if (import.meta.client) {
@@ -46,6 +51,7 @@ export const useGameStore = defineStore('game', () => {
   })
 
   const currentGoal = computed(() => {
+    if (sessionPairCount.value > 0) return sessionPairCount.value
     const { activeUpgradeIds } = useUpgradeStore()
     let goal = floor.value.goal
     if (activeUpgradeIds.has('✂️')) {
@@ -54,23 +60,27 @@ export const useGameStore = defineStore('game', () => {
     return Math.max(1, goal - floorGoalModifier.value)
   })
 
-  function iniciarTabuleiro() {
+  function iniciarTabuleiro(pairCount?: number) {
     const upgradeStore = useUpgradeStore()
     stopTimer()
     floorGoalModifier.value = 0
 
     processFloorStartEffects(upgradeStore.activeUpgradeIds, floorGoalModifier, loseLife)
 
-    tabuleiro.value = gerarListaCartasMemoria(bancoEmojis, (currentGoal.value <= maxBoardSize) ? currentGoal.value : maxBoardSize)
+    const count = pairCount ?? currentGoal.value
+    tabuleiro.value = gerarListaCartasMemoria(bancoEmojis, Math.min(count, maxBoardSize))
 
-    const floorTime = getFloorTime(floor.value.number, upgradeStore.collectedUpgrades)
+    const mapStore = useMapStore()
+    const node = currentCombatNodeId.value ? mapStore.getNode(currentCombatNodeId.value) : null
+    const shouldUseTimer = node?.type === NodeType.COMBAT_MEDIUM || node?.type === NodeType.COMBAT_BOSS
 
-    if (floorTime === -1) {
-      timeRemaining.value = -1
-    } else {
-      startTimer(floorTime, () => {
+    if (shouldUseTimer) {
+      const floorTime = getFloorTime(floor.value.number, upgradeStore.collectedUpgrades)
+      startTimer(floorTime > 0 ? floorTime : TIMER_BASE_SECONDS, () => {
         handleDeath()
       })
+    } else {
+      timeRemaining.value = -1
     }
 
     if (upgradeStore.activeUpgradeIds.has('👁️')) {
@@ -155,6 +165,21 @@ export const useGameStore = defineStore('game', () => {
     }
   }
 
+  function startCombatFromNode(pairCount: number, nodeId: string) {
+    sessionPairCount.value = pairCount
+    currentCombatNodeId.value = nodeId
+    pairsFoundInAndar.value = 0
+    resetStreak()
+    iniciarTabuleiro(pairCount)
+  }
+
+  function resetCombatSession() {
+    sessionPairCount.value = 0
+    currentCombatNodeId.value = null
+    pairsFoundInAndar.value = 0
+    floorGoalModifier.value = 0
+  }
+
   function resetRun() {
     stopTimer()
     useUpgradeStore().clearUpgrades()
@@ -168,12 +193,15 @@ export const useGameStore = defineStore('game', () => {
     timeRemaining.value = -1
     pairsFoundInAndar.value = 0
     gameStarted.value = false
+    sessionPairCount.value = 0
+    currentCombatNodeId.value = null
   }
 
   function startNewGame() {
     resetRun()
+    const mapStore = useMapStore()
+    mapStore.initRun()
     gameStarted.value = true
-    iniciarTabuleiro()
   }
 
   function nextFloor(addToGoal: number) {
@@ -222,6 +250,10 @@ export const useGameStore = defineStore('game', () => {
     startNewGame,
     nextFloor,
     handleDeath,
-    updateBestFloor
+    updateBestFloor,
+    sessionPairCount,
+    currentCombatNodeId,
+    startCombatFromNode,
+    resetCombatSession
   }
 })
