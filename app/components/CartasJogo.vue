@@ -28,9 +28,8 @@ const cardTransform = computed(() => {
 <template>
   <div
     ref="alvo"
-    class="relative w-[75px] h-[100px] sm:w-[90px] sm:h-[120px] md:w-[100px] md:h-[135px] cursor-pointer anim-entrada"
+    class="relative w-[75px] h-[100px] sm:w-[90px] sm:h-[120px] md:w-[100px] md:h-[135px] cursor-pointer"
     style="perspective: 1000px"
-    :style="{ '--delay': `${index * 0.1}s` }"
     @click="$emit('click', $event)"
   >
     <!-- Container que faz o TILT (Efeito do mouse) -->
@@ -72,20 +71,4 @@ const cardTransform = computed(() => {
 </template>
 
 <style scoped>
-.anim-entrada {
-  opacity: 0;
-  animation: entrar 0.5s ease-out forwards;
-  animation-delay: var(--delay);
-}
-
-@keyframes entrar {
-  from {
-    opacity: 0;
-    transform: translateY(-100px) rotate(10deg) scale(0.5);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) rotate(0) scale(1);
-  }
-}
 </style>

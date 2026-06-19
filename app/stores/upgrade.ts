@@ -28,7 +28,7 @@ export const useUpgradeStore = defineStore('upgrade', () => {
 
     if (id === '❤️') {
       const gameStore = useGameStore()
-      gameStore.lives++
+      gameStore.lives += 2
       return
     }
 

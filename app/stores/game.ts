@@ -32,6 +32,8 @@ export const useGameStore = defineStore('game', () => {
   const primeiroCliqueFeito = ref(false)
   const escudoDivinoUsadoEsteCombate = ref(false)
   const escudoVidroAtivo = ref(false)
+  const chaosShufflingInProgress = ref(false)
+  const chaosAfetados = ref<Set<string | number>>(new Set())
   let chaosIntervalId: ReturnType<typeof setInterval> | null = null
 
   onMounted(() => {
@@ -169,7 +171,9 @@ export const useGameStore = defineStore('game', () => {
     if (hasBadDream) {
       upgradeStore.removeUpgrade('🛏️')
       lives.value = 1
+      showEyeAnimation.value = true
       iniciarTabuleiro(sessionPairCount.value)
+      setTimeout(() => showEyeAnimation.value = false, 2500)
       return
     }
 
@@ -247,6 +251,8 @@ export const useGameStore = defineStore('game', () => {
       clearInterval(chaosIntervalId)
       chaosIntervalId = null
     }
+    chaosShufflingInProgress.value = false
+    chaosAfetados.value = new Set()
     errosConsecutivos.value = 0
     primeiroCliqueFeito.value = false
     escudoDivinoUsadoEsteCombate.value = false
@@ -256,9 +262,21 @@ export const useGameStore = defineStore('game', () => {
 
   function resetRun() {
     stopTimer()
+
+    if (chaosIntervalId) {
+      clearInterval(chaosIntervalId)
+      chaosIntervalId = null
+    }
+
     useUpgradeStore().clearUpgrades()
+
+    tabuleiro.value = []
     lives.value = INITIAL_LIVES
     isGameOver.value = false
+    isInCombat.value = false
+    comboStreak.value = 0
+    floorGoalModifier.value = 0
+
     floor.value = {
       number: 1,
       goal: INITIAL_GOAL,
@@ -269,6 +287,13 @@ export const useGameStore = defineStore('game', () => {
     gameStarted.value = false
     sessionPairCount.value = 0
     currentCombatNodeId.value = null
+    timerStartsAfterFirstPair.value = false
+    errosConsecutivos.value = 0
+    primeiroCliqueFeito.value = false
+    escudoDivinoUsadoEsteCombate.value = false
+    escudoVidroAtivo.value = false
+    chaosAfetados.value = new Set()
+    chaosShufflingInProgress.value = false
   }
 
   function startNewGame() {
@@ -312,14 +337,38 @@ export const useGameStore = defineStore('game', () => {
     errosConsecutivos.value = 0
   }
 
-  function chaosShuffle() {
-    const nonMatched = tabuleiro.value.map((c, i) => ({ c, i })).filter(x => !x.c.combinada)
-    if (nonMatched.length < 4) return
-    const shuffled = [...nonMatched.map(x => x.c)].sort(() => Math.random() - 0.5)
-    nonMatched.forEach((entry, i) => {
-      const card = shuffled[i]
-      if (card) tabuleiro.value[entry.i] = card
-    })
+  async function chaosShuffle() {
+    if (chaosShufflingInProgress.value) return
+
+    const nonMatched = tabuleiro.value.map((c, i) => ({ i })).filter(x => !tabuleiro.value[x.i]!.combinada)
+    if (nonMatched.length < 6) return
+
+    chaosShufflingInProgress.value = true
+
+    for (let s = 0; s < 4; s++) {
+      const idx1 = Math.floor(Math.random() * nonMatched.length)
+      let idx2 = Math.floor(Math.random() * nonMatched.length)
+      while (idx2 === idx1) idx2 = Math.floor(Math.random() * nonMatched.length)
+
+      const pos1 = nonMatched[idx1]!.i
+      const pos2 = nonMatched[idx2]!.i
+
+      const arr = [...tabuleiro.value]
+      const card1 = arr[pos1]!
+      const card2 = arr[pos2]!
+      ;[arr[pos1], arr[pos2]] = [card2, card1]
+      tabuleiro.value = arr
+
+      chaosAfetados.value.add(card1.id)
+      chaosAfetados.value.add(card2.id)
+
+      nonMatched[idx1] = { i: pos2 }
+      nonMatched[idx2] = { i: pos1 }
+
+      await new Promise(resolve => setTimeout(resolve, 500))
+    }
+
+    chaosShufflingInProgress.value = false
   }
 
   function addTime(seconds: number) {
@@ -365,6 +414,8 @@ export const useGameStore = defineStore('game', () => {
     addTime,
     errosConsecutivos,
     primeiroCliqueFeito,
-    escudoVidroAtivo
+    escudoVidroAtivo,
+    chaosAfetados,
+    chaosShufflingInProgress
   }
 })

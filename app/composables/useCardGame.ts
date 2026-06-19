@@ -12,6 +12,7 @@ export function useCardGame() {
 
   function selectCard(card: Card, event?: MouseEvent) {
     if (card.revelada || card.combinada || lockBoard.value) return
+    if (gameStore.chaosShufflingInProgress) return
 
     if (event) {
       lastClickPos.value = { x: event.clientX, y: event.clientY }
@@ -29,7 +30,8 @@ export function useCardGame() {
 
     // 🔮 Premonição (primeira carta do turno): revela outra aleatória
     if (upgradeStore.hasActiveUpgrade('🔮') && !firstCard.value) {
-      const extra = gameStore.tabuleiro.find(c => c.id !== card.id && !c.combinada)
+      const disponiveis = gameStore.tabuleiro.filter(c => c.id !== card.id && !c.combinada)
+      const extra = disponiveis[Math.floor(Math.random() * disponiveis.length)]
       if (extra) {
         extra.revelada = true
         setTimeout(() => {
@@ -38,16 +40,24 @@ export function useCardGame() {
       }
     }
 
-    // 🧲 Ímã: troca a par com vizinho
+    // 🧲 Ímã: par troca com vizinho da carta clicada
     if (upgradeStore.isImaActive) {
       const match = gameStore.tabuleiro.find(c => c.valor === card.valor && c.id !== card.id)
       if (match) {
+        const clickedIdx = gameStore.tabuleiro.indexOf(card)
         const idx = gameStore.tabuleiro.indexOf(match)
-        const adj = idx > 0 ? idx - 1 : (idx < gameStore.tabuleiro.length - 1 ? idx + 1 : null)
-        if (adj !== null && adj !== idx && gameStore.tabuleiro[adj]) {
-          const temp = gameStore.tabuleiro[adj]
-          gameStore.tabuleiro[adj] = gameStore.tabuleiro[idx] as Card
-          gameStore.tabuleiro[idx] = temp as Card
+        const numCards = gameStore.tabuleiro.length
+        const colsMobile = numCards <= 4 ? 2 : 4
+        const colsPC = Math.ceil(numCards / 4)
+        const atRightEdge = (clickedIdx % colsMobile === colsMobile - 1)
+          || (clickedIdx % colsPC === colsPC - 1)
+        const adj = !atRightEdge && clickedIdx < numCards - 1
+          ? clickedIdx + 1
+          : (clickedIdx > 0 ? clickedIdx - 1 : null)
+        if (adj !== null && adj !== idx && adj >= 0 && adj < gameStore.tabuleiro.length) {
+          const arr = [...gameStore.tabuleiro]
+          ;[arr[idx], arr[adj]] = [arr[adj]!, arr[idx]!]
+          gameStore.tabuleiro = arr
         }
       }
       upgradeStore.isImaActive = false
@@ -113,7 +123,9 @@ export function useCardGame() {
     let penaltyTime = false
 
     if (firstCard.value?.jaViu) {
-      if (hasContract && !firstCard.value.usouSegundaChance) {
+      if (gameStore.chaosAfetados.has(firstCard.value.id)) {
+        gameStore.chaosAfetados.delete(firstCard.value.id)
+      } else if (hasContract && !firstCard.value.usouSegundaChance) {
         firstCard.value.usouSegundaChance = true
       } else if (hasPocketWatch) {
         penaltyTime = true
@@ -123,7 +135,9 @@ export function useCardGame() {
     }
 
     if (secondCard.value?.jaViu) {
-      if (hasContract && !secondCard.value.usouSegundaChance) {
+      if (gameStore.chaosAfetados.has(secondCard.value.id)) {
+        gameStore.chaosAfetados.delete(secondCard.value.id)
+      } else if (hasContract && !secondCard.value.usouSegundaChance) {
         secondCard.value.usouSegundaChance = true
       } else if (hasPocketWatch) {
         penaltyTime = true

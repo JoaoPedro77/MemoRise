@@ -271,7 +271,9 @@ onUnmounted(() => {
         </UTooltip>
       </aside>
 
-      <section
+      <TransitionGroup
+        tag="section"
+        move-class="card-move"
         class="grid gap-2 md:gap-3 max-w-7xl justify-items-center md:grid-cols-[repeat(var(--cols-pc),minmax(0,1fr))]"
         :class="gridColsClass.class"
         :style="{ '--cols-pc': gridColsClass.colsPC }"
@@ -283,7 +285,7 @@ onUnmounted(() => {
           :index="j"
           @click="selectCard(card, $event)"
         />
-      </section>
+      </TransitionGroup>
 
       <div
         v-if="upgradeStore.activeUpgrades.some(u => u?.type === 'item')"
@@ -531,5 +533,9 @@ onUnmounted(() => {
 
 .shake-animation {
   animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+.card-move {
+  transition: transform 0.6s ease;
 }
 </style>
