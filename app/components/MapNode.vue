@@ -22,6 +22,9 @@ const iconClass = computed(() => {
 })
 
 const tooltipText = computed(() => {
+  if (props.node.state === NodeState.VISITED) {
+    return `${props.node.label} — Concluído`
+  }
   return `${props.node.label} — Clique para entrar`
 })
 

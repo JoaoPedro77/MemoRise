@@ -7,6 +7,7 @@ export const useUpgradeStore = defineStore('upgrade', () => {
   const opcoesUpgrade = ref<Upgrade[]>([])
   const selectedItemInstanceId = ref<string | null>(null)
   const isLupaActive = ref(false)
+  const isImaActive = ref(false)
 
   const activeUpgrades = computed(() => {
     return collectedUpgrades.value.map((cu) => {
@@ -124,6 +125,27 @@ export const useUpgradeStore = defineStore('upgrade', () => {
         break
       case '🔑':
         break
+      case '🧲':
+        isImaActive.value = true
+        break
+      case '⏳':
+        gameStore.addTime(30)
+        break
+      case '🪞':
+        gameStore.escudoVidroAtivo = true
+        break
+      case '🔭': {
+        const targets = gameStore.tabuleiro.filter(c => !c.combinada).sort(() => Math.random() - 0.5).slice(0, 3)
+        targets.forEach((c) => {
+          c.revelada = true
+        })
+        setTimeout(() => {
+          targets.forEach((c) => {
+            c.revelada = false
+          })
+        }, 2000)
+        break
+      }
       case '🧪':
         triggerMadnessEffect()
         break
@@ -180,11 +202,13 @@ export const useUpgradeStore = defineStore('upgrade', () => {
     opcoesUpgrade.value = []
     selectedItemInstanceId.value = null
     isLupaActive.value = false
+    isImaActive.value = false
   }
 
   function clearSelection() {
     selectedItemInstanceId.value = null
     isLupaActive.value = false
+    isImaActive.value = false
   }
 
   function triggerTestUpgrade() {
@@ -199,6 +223,7 @@ export const useUpgradeStore = defineStore('upgrade', () => {
     opcoesUpgrade,
     selectedItemInstanceId,
     isLupaActive,
+    isImaActive,
     activeUpgrades,
     activeUpgradeIds,
     hasActiveUpgrade,

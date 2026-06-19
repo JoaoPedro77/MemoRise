@@ -67,7 +67,7 @@ export const UPGRADES_POOL: Upgrade[] = [
     id: '⌛',
     name: 'Ampulheta',
     icon: 'game-icons:sands-of-time',
-    description: 'Mais 1 min. para completar o andar',
+    description: 'O timer só começa após você acertar o primeiro par',
     floors: 5,
     type: 'perk'
   },
@@ -75,7 +75,7 @@ export const UPGRADES_POOL: Upgrade[] = [
     id: '✂️',
     name: 'Corte de Custos',
     icon: 'game-icons:scissors',
-    description: 'Próximo andar tem metade do objetivo',
+    description: 'Próximo andar de batalha tem metade dos pares (funciona até no chefe)',
     floors: 1,
     type: 'perk'
   },
@@ -83,7 +83,7 @@ export const UPGRADES_POOL: Upgrade[] = [
     id: '💪',
     name: 'Memória Muscular',
     icon: 'game-icons:muscle-fat',
-    description: 'Se você acertar 3 pares seguidos, recupera 1 ponto de vida.',
+    description: 'Acertar um par de primeira (ambas nunca vistas antes) recupera 1 vida. O último par não vale.',
     floors: 3,
     type: 'perk'
   },
@@ -91,8 +91,48 @@ export const UPGRADES_POOL: Upgrade[] = [
     id: '🎲',
     name: 'Sorte de principiante',
     icon: 'game-icons:dice-fire',
-    description: 'tem 2% de chance de começar com -1 par',
-    floors: 20,
+    description: 'tem 15% de chance de começar com -1 par',
+    floors: 10,
+    type: 'perk'
+  },
+  {
+    id: '🛡️',
+    name: 'Escudo Divino',
+    icon: 'game-icons:shield',
+    description: 'Uma vez por andar, o primeiro erro não custa vida',
+    floors: 3,
+    type: 'perk'
+  },
+  {
+    id: '🔮',
+    name: 'Premonição',
+    icon: 'game-icons:crystal-ball',
+    description: 'A primeira carta clicada revela ela e outra aleatória por 800ms',
+    floors: 2,
+    type: 'perk'
+  },
+  {
+    id: '🧠',
+    name: 'Mente Aguçada',
+    icon: 'game-icons:brain',
+    description: '+1 par no objetivo. A cada 3 pares sem erro, recupera 1 vida',
+    floors: 3,
+    type: 'perk'
+  },
+  {
+    id: '🤝',
+    name: 'Sorte Compartilhada',
+    icon: 'game-icons:handshake',
+    description: 'Acertar 2 pares seguidos dá +10s no timer',
+    floors: 3,
+    type: 'perk'
+  },
+  {
+    id: '🏃',
+    name: 'Corrida',
+    icon: 'game-icons:run',
+    description: 'Timer pausa por 8s após cada par encontrado',
+    floors: 3,
     type: 'perk'
   },
 
@@ -106,11 +146,43 @@ export const UPGRADES_POOL: Upgrade[] = [
     type: 'curse'
   },
   {
-    id: '💀',
-    name: 'Pacto Da Morte',
-    icon: 'game-icons:chewed-skull',
-    description: '30% de chance: -4 par \n 50% de chance: -1 vida',
+    id: '🦗',
+    name: 'Silêncio',
+    icon: 'game-icons:cricket',
+    description: 'Timer começa com -45s',
     floors: 5,
+    type: 'curse'
+  },
+  {
+    id: '🌀',
+    name: 'Caos',
+    icon: 'game-icons:vortex',
+    description: 'A cada 15s, cartas viradas (não combinadas) são reembaralhadas',
+    floors: 3,
+    type: 'curse'
+  },
+  {
+    id: '👻',
+    name: 'Aparição',
+    icon: 'game-icons:ghost',
+    description: '20% de chance de uma carta aleatória virar sozinha após sua jogada',
+    floors: 4,
+    type: 'curse'
+  },
+  {
+    id: '🕳️',
+    name: 'Esquecimento',
+    icon: 'game-icons:hole',
+    description: 'Errar 2 vezes seguidas desfaz um par já combinado',
+    floors: 5,
+    type: 'curse'
+  },
+  {
+    id: '💤',
+    name: 'Sono Pesado',
+    icon: 'game-icons:sleepy',
+    description: 'A primeira carta clicada no andar vira e desvira sem efeito',
+    floors: 2,
     type: 'curse'
   },
 
@@ -127,7 +199,7 @@ export const UPGRADES_POOL: Upgrade[] = [
     id: '🔑',
     name: 'Chave do andar',
     icon: 'game-icons:key-lock',
-    description: 'Pula o nó de batalha atual como se tivesse vencido',
+    description: 'Pula o andar de batalha atual como se tivesse vencido',
     floors: 1,
     type: 'item'
   },
@@ -147,6 +219,37 @@ export const UPGRADES_POOL: Upgrade[] = [
     description: 'Vira e desvira cartas aleatoriamente por um tempo',
     floors: 1,
     type: 'item'
+  },
+  {
+    id: '🧲',
+    name: 'Ímã',
+    icon: 'game-icons:magnet',
+    description: 'A par da carta clicada troca de lugar com uma carta vizinha',
+    floors: 1,
+    type: 'item'
+  },
+  {
+    id: '⏳',
+    name: 'Ampulheta Pequena',
+    icon: 'game-icons:sands-of-time',
+    description: '+30s no timer atual',
+    floors: 1,
+    type: 'item'
+  },
+  {
+    id: '🪞',
+    name: 'Escudo de Vidro',
+    icon: 'game-icons:glass-heart',
+    description: 'O próximo erro não custa vida (quebra depois)',
+    floors: 1,
+    type: 'item'
+  },
+  {
+    id: '🔭',
+    name: 'Telescópio',
+    icon: 'game-icons:telescope',
+    description: 'Revela 3 cartas aleatórias por 2s no início do combate',
+    floors: 1,
+    type: 'item'
   }
-
 ]

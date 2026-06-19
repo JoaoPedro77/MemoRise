@@ -17,6 +17,43 @@ export function useCardGame() {
       lastClickPos.value = { x: event.clientX, y: event.clientY }
     }
 
+    // 💤 Sono Pesado: primeira carta clicada vira e desvira sem efeito
+    if (upgradeStore.hasActiveUpgrade('💤') && !gameStore.primeiroCliqueFeito) {
+      gameStore.primeiroCliqueFeito = true
+      card.revelada = true
+      setTimeout(() => {
+        card.revelada = false
+      }, 500)
+      return
+    }
+
+    // 🔮 Premonição (primeira carta do turno): revela outra aleatória
+    if (upgradeStore.hasActiveUpgrade('🔮') && !firstCard.value) {
+      const extra = gameStore.tabuleiro.find(c => c.id !== card.id && !c.combinada)
+      if (extra) {
+        extra.revelada = true
+        setTimeout(() => {
+          extra.revelada = false
+        }, 800)
+      }
+    }
+
+    // 🧲 Ímã: troca a par com vizinho
+    if (upgradeStore.isImaActive) {
+      const match = gameStore.tabuleiro.find(c => c.valor === card.valor && c.id !== card.id)
+      if (match) {
+        const idx = gameStore.tabuleiro.indexOf(match)
+        const adj = idx > 0 ? idx - 1 : (idx < gameStore.tabuleiro.length - 1 ? idx + 1 : null)
+        if (adj !== null && adj !== idx && gameStore.tabuleiro[adj]) {
+          const temp = gameStore.tabuleiro[adj]
+          gameStore.tabuleiro[adj] = gameStore.tabuleiro[idx] as Card
+          gameStore.tabuleiro[idx] = temp as Card
+        }
+      }
+      upgradeStore.isImaActive = false
+      return
+    }
+
     card.revelada = true
 
     if (!firstCard.value) {
@@ -58,8 +95,12 @@ export function useCardGame() {
   function handleSuccess() {
     if (firstCard.value) firstCard.value.combinada = true
     if (secondCard.value) secondCard.value.combinada = true
-    gameStore.registerMatch()
 
+    const firstTimeMatch = !firstCard.value?.jaViu && !secondCard.value?.jaViu
+    gameStore.registerMatch(firstTimeMatch)
+    gameStore.errosConsecutivos = 0
+
+    afterTurnEffects()
     resetTurn()
   }
 
@@ -97,9 +138,16 @@ export function useCardGame() {
       gameStore.loseLife()
     }
 
+    // 🕳️ Esquecimento: 2 erros seguidos desfaz par
+    gameStore.errosConsecutivos++
+    if (gameStore.errosConsecutivos >= 2 && upgradeStore.hasActiveUpgrade('🕳️')) {
+      gameStore.desfazerPar()
+    }
+
     setTimeout(() => {
       if (firstCard.value) firstCard.value.revelada = false
       if (secondCard.value) secondCard.value.revelada = false
+      afterTurnEffects()
       resetTurn()
     }, DELAY_FLIP_BACK)
   }
@@ -117,6 +165,21 @@ export function useCardGame() {
   const ganhouFase = computed(() => {
     return gameStore.pairsFoundInAndar >= gameStore.currentGoal
   })
+
+  function afterTurnEffects() {
+    // 👻 Aparição: 20% de virar carta aleatória
+    if (upgradeStore.hasActiveUpgrade('👻') && Math.random() < 0.2) {
+      const targets = gameStore.tabuleiro.filter(c => !c.combinada)
+      if (targets.length > 0) {
+        const ghost = targets[Math.floor(Math.random() * targets.length)]
+        if (!ghost) return
+        ghost.revelada = true
+        setTimeout(() => {
+          ghost.revelada = false
+        }, 600)
+      }
+    }
+  }
 
   return {
     selectCard,

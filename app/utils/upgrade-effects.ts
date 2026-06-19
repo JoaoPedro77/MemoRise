@@ -19,18 +19,13 @@ export function processFloorStartEffects(
   floorGoalModifier: { value: number },
   loseLife: () => void
 ) {
-  if (activeIds.has('🎲') && Math.random() < 0.02) {
+  if (activeIds.has('🎲') && Math.random() < 0.15) {
     floorGoalModifier.value++
   }
 
   if (activeIds.has('🪦')) {
     if (Math.random() < 0.30) floorGoalModifier.value++
     if (Math.random() < 0.10) loseLife()
-  }
-
-  if (activeIds.has('💀')) {
-    if (Math.random() < 0.30) floorGoalModifier.value += 4
-    if (Math.random() < 0.50) loseLife()
   }
 }
 

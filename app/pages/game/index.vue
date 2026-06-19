@@ -455,7 +455,7 @@ onUnmounted(() => {
                 name="game-icons:stone-tower"
                 class="text-primary-500"
               />
-              NÓ CONCLUÍDO!
+              ANDAR CONCLUÍDO!
             </h2>
           </div>
 
