@@ -33,7 +33,7 @@ export const UPGRADES_POOL: Upgrade[] = [
   },
   {
     id: '📄',
-    name: 'Contrato da Morte',
+    name: 'Amigo da Morte',
     icon: 'game-icons:reaper-scythe',
     description: 'Permite ver a mesma carta 2x sem perder vida',
     floors: 5,
@@ -114,12 +114,20 @@ export const UPGRADES_POOL: Upgrade[] = [
     type: 'curse'
   },
 
+  {
+    id: '🔄',
+    name: 'Renovação',
+    icon: 'game-icons:renew',
+    description: 'Recarrega todos os perks ativos para a duração máxima',
+    type: 'perk'
+  },
+
   // Itens
   {
     id: '🔑',
     name: 'Chave do andar',
     icon: 'game-icons:key-lock',
-    description: 'Pula para o próximo andar',
+    description: 'Pula o nó de batalha atual como se tivesse vencido',
     floors: 1,
     type: 'item'
   },

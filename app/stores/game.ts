@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { getFloorTime, processFloorStartEffects, getPeekDuration } from '~/utils/upgrade-effects'
 import { gerarListaCartasMemoria } from '~/utils/game-logic'
 import { bancoEmojis } from '~/utils/banco-emojis'
-import { maxBoardSize, maxLives, INITIAL_LIVES, INITIAL_GOAL, GOAL_INCREMENT_PER_FLOOR, TIMER_BASE_SECONDS } from '~/constants/constantes'
+import { maxBoardSize, maxLives, INITIAL_LIVES, INITIAL_GOAL, TIMER_BASE_SECONDS } from '~/constants/constantes'
 import { NodeType } from '~/utils/map-generator'
 
 export const useGameStore = defineStore('game', () => {
@@ -34,8 +34,10 @@ export const useGameStore = defineStore('game', () => {
   })
 
   function updateBestFloor() {
-    if (floor.value.number > bestFloor.value) {
-      bestFloor.value = floor.value.number
+    const mapStore = useMapStore()
+    const tower = mapStore.towerNumber
+    if (tower > bestFloor.value) {
+      bestFloor.value = tower
       if (import.meta.client) {
         localStorage.setItem('memorise-best-floor', bestFloor.value.toString())
       }
@@ -118,23 +120,14 @@ export const useGameStore = defineStore('game', () => {
     const upgradeStore = useUpgradeStore()
     const hasBadDream = upgradeStore.hasActiveUpgrade('🛏️')
 
-    if (hasBadDream && floor.value.number > 1) {
+    if (hasBadDream) {
       upgradeStore.removeUpgrade('🛏️')
-
       lives.value = 1
-      floor.value.number--
-      floor.value.goal -= GOAL_INCREMENT_PER_FLOOR
-      pairsFoundInAndar.value = 0
-
-      showEyeAnimation.value = true
-      setTimeout(() => {
-        showEyeAnimation.value = false
-      }, 2000)
-
-      iniciarTabuleiro()
-    } else {
-      isGameOver.value = true
+      iniciarTabuleiro(sessionPairCount.value)
+      return
     }
+
+    isGameOver.value = true
   }
 
   function loseLife() {
@@ -234,6 +227,7 @@ export const useGameStore = defineStore('game', () => {
     currentGoal,
     comboStreak,
     bestFloor,
+    stopTimer,
     floorGoalModifier,
     showEyeAnimation,
     lastTimePenalty,

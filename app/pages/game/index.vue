@@ -115,10 +115,45 @@ function closeCurseDialog() {
   checkTowerAdvance()
 }
 
+function restartGame() {
+  gameStore.startNewGame()
+  gamePhase.value = 'map'
+  showTowerComplete.value = false
+  showRestDialog.value = false
+  showCurseDialog.value = false
+  appliedCurse.value = null
+}
+
+function onActivateItem(instanceId: string) {
+  const item = upgradeStore.activeUpgrades.find(u => u.instanceId === instanceId)
+  if (!item) return
+
+  if (item.id === '🔑') {
+    const node = mapStore.currentNode
+    if (node?.type === NodeType.COMBAT_BOSS) {
+      const toast = useToast()
+      toast.add({
+        title: 'Não pode pular!',
+        description: 'Você precisa enfrentar o chefe!',
+        icon: 'i-lucide-ban',
+        color: 'error',
+        duration: 3000
+      })
+      return
+    }
+    upgradeStore.activateItem(instanceId)
+    handleNodeCompletion()
+    return
+  }
+
+  upgradeStore.activateItem(instanceId)
+}
+
 function handleNodeCompletion() {
   const node = mapStore.currentNode
   if (!node) return
 
+  gameStore.stopTimer()
   gameStore.resetCombatSession()
 
   if (
@@ -148,6 +183,7 @@ function handleNodeCompletion() {
 
 function checkTowerAdvance() {
   if (mapStore.isBossDefeated) {
+    gameStore.updateBestFloor()
     showTowerComplete.value = true
   }
 }
@@ -159,7 +195,7 @@ function advanceTower() {
 }
 
 function applyRandomCurse() {
-  const curseIds = ['🪦', '💀', '📄']
+  const curseIds = ['🪦', '💀']
   const id = curseIds[Math.floor(Math.random() * curseIds.length)]
   if (!id) return
   upgradeStore.addUpgrade(id)
@@ -255,7 +291,7 @@ onUnmounted(() => {
           :index="i"
           :selected="upgradeStore.selectedItemInstanceId === up.instanceId"
           @click="upgradeStore.selectItem(up.instanceId)"
-          @activate="upgradeStore.activateItem(up.instanceId)"
+          @activate="onActivateItem(up.instanceId)"
         />
       </div>
     </template>
@@ -387,7 +423,7 @@ onUnmounted(() => {
               v-if="gameStore.bestFloor > 0"
               class="block mt-2 text-xs font-bold text-primary-500 uppercase tracking-widest"
             >
-              Seu Recorde: Andar {{ gameStore.bestFloor }}
+              Seu Recorde: Torre {{ gameStore.bestFloor }}
             </span>
           </p>
 
@@ -398,7 +434,7 @@ onUnmounted(() => {
             variant="solid"
             size="xl"
             block
-            @click="gameStore.startNewGame()"
+            @click="restartGame"
           />
         </div>
       </template>

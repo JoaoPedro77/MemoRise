@@ -31,6 +31,16 @@ export const useUpgradeStore = defineStore('upgrade', () => {
       return
     }
 
+    if (id === '🔄') {
+      collectedUpgrades.value.forEach((cu) => {
+        const original = UPGRADES_POOL.find(u => u.id === cu.id)
+        if (original?.floors && original.type !== 'item' && original.type !== 'curse') {
+          cu.floorsLeft = original.floors
+        }
+      })
+      return
+    }
+
     const isItem = upgrade.type === 'item'
 
     if (isItem) {
@@ -113,7 +123,6 @@ export const useUpgradeStore = defineStore('upgrade', () => {
         isLupaActive.value = true
         break
       case '🔑':
-        gameStore.nextFloor(2)
         break
       case '🧪':
         triggerMadnessEffect()
