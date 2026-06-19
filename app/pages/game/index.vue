@@ -82,6 +82,7 @@ function startCombat(nodeId: string) {
 
   gameStore.startCombatFromNode(node.pairCount, nodeId)
   gamePhase.value = 'combat'
+  gameStore.isInCombat = true
 }
 
 function applyNonCombatNode(node: { id: string, type: NodeType }) {
@@ -118,6 +119,7 @@ function closeCurseDialog() {
 function restartGame() {
   gameStore.startNewGame()
   gamePhase.value = 'map'
+  gameStore.isInCombat = false
   showTowerComplete.value = false
   showRestDialog.value = false
   showCurseDialog.value = false
@@ -176,6 +178,7 @@ function handleNodeCompletion() {
     default: {
       mapStore.completeCurrentNode()
       gamePhase.value = 'map'
+      gameStore.isInCombat = false
       checkTowerAdvance()
     }
   }
@@ -192,6 +195,7 @@ function advanceTower() {
   showTowerComplete.value = false
   mapStore.startNextTower()
   gamePhase.value = 'map'
+  gameStore.isInCombat = false
 }
 
 function applyRandomCurse() {
@@ -206,6 +210,7 @@ watch(() => upgradeStore.opcoesUpgrade.length, (newLen, oldLen) => {
   if (oldLen > 0 && newLen === 0) {
     mapStore.completeCurrentNode()
     gamePhase.value = 'map'
+    gameStore.isInCombat = false
     checkTowerAdvance()
   }
 })

@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { useGameStore } from './stores/game'
+import { useMapStore } from './stores/map'
 
 const gameStore = useGameStore()
+const mapStore = useMapStore()
 
 useHead({
   meta: [
@@ -62,10 +64,13 @@ useSeoMeta({
                 class="text-primary-500 text-2xl"
               />
               <span class="text-2xl font-bold select-none">
-                {{ gameStore.floor.number }}
+                {{ mapStore.towerNumber }}
               </span>
             </div>
-            <div class="flex items-center gap-1">
+            <div
+              v-if="gameStore.isInCombat"
+              class="flex items-center gap-1"
+            >
               <UIcon
                 name="game-icons:ace"
                 class="text-primary-500 text-2xl"
@@ -74,7 +79,10 @@ useSeoMeta({
                 {{ gameStore.pairsRemaining }}
               </span>
             </div>
-            <div class="flex items-center gap-1 relative">
+            <div
+              v-if="gameStore.isInCombat"
+              class="flex items-center gap-1 relative"
+            >
               <UIcon
                 name="game-icons:hourglass"
                 class="text-primary-500 text-2xl"

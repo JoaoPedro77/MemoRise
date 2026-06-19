@@ -115,7 +115,7 @@ function getPairCount(type: NodeType, towerNumber: number): number | undefined {
 
   if (values === undefined) return undefined
 
-  const towerBonus = (towerNumber - 1) * TOWER_PAIR_INCREMENT
+  const towerBonus = type === NodeType.COMBAT_BOSS ? (towerNumber - 1) * TOWER_PAIR_INCREMENT : 0
   return pickRandom(values) + towerBonus
 }
 

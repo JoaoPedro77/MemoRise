@@ -19,6 +19,7 @@ export const useGameStore = defineStore('game', () => {
   const showTimePenaltyAnim = ref(false)
   const penaltyPos = ref({ x: 0, y: 0 })
   const isGameOver = ref(false)
+  const isInCombat = ref(false)
   const pairsFoundInAndar = ref(0)
 
   // Map-driven combat state
@@ -331,6 +332,7 @@ export const useGameStore = defineStore('game', () => {
     floor,
     gameStarted,
     isGameOver,
+    isInCombat,
     timeRemaining,
     pairsFoundInAndar,
     pairsRemaining,
